@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-06-04T01:00:00.631158+00:00",
+  "timestamp": "2023-06-15T00:52:06.776248+00:00",
   "repo": "quicwg/multipath",
   "labels": [
     {
@@ -5104,7 +5104,7 @@
       "labels": [],
       "body": "> To address such a synchronization issue, if key update is initialized on one path, the sender SHOULD send at least one packet with the new key on all active paths. Further, an endpoint MUST NOT initiate a subsequent key update until a packet with the current key has been acknowledged on each path\r\n\r\nThis has a multitude of problems:\r\n1. Depending on the number of paths, this is wasteful.\r\n1. In my implementation, the object managing the keys is purely reactive: It only reacts on input received from the QUIC stack (received packets, requests to encrypt a packet). With this proposal, it would need to take a more active role, triggering the sending of new packets on certain paths.\r\n1. A path might have died when this \u201ekey update probe packet\u201c is sent. This certainly can be solved by adding some additional logic what to do for paths that are abandoned during a key update, but this could potentially become complicated. Furthermore, this is fragile, because this logic will be rarely exercised and could lead to a situation where a node thinks that it\u2019s not allowed to initiate a key update and will there not be able to send any further packets.\r\n\r\n",
       "createdAt": "2023-03-31T04:33:57Z",
-      "updatedAt": "2023-04-03T04:38:55Z",
+      "updatedAt": "2023-06-14T23:59:32Z",
       "closedAt": null,
       "comments": [
         {
@@ -5120,6 +5120,13 @@
           "body": "I like Marten's proposed solution. Clearly, there is some risk involved. For some time after the key update, packets may arrive with the \"old\" key phase, and should be processed with the old key. If the next rotation is attempted too soon and packets are still in transit with the old key, these packets will be lost. But that's a temporary issue.",
           "createdAt": "2023-04-03T04:38:55Z",
           "updatedAt": "2023-04-03T04:38:55Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "What @marten-seemann says.\r\n\r\n> Clearly, there is some risk involved. For some time after the key update, packets may arrive with the \"old\" key phase, and should be processed with the old key. If the next rotation is attempted too soon and packets are still in transit with the old key, these packets will be lost. But that's a temporary issue.\r\n\r\nI would point out that during the development of QUIC v1 we did discuss this issue and decided that use of a timer would be fine. I would prefer building on top of that consensus as @marten-seemann proposes, rather than trying to do something else.\r\n\r\nTo be precise, as stated in [the latter half of RFC 9001 Section 6.5](https://www.rfc-editor.org/rfc/rfc9001#section-6.5-4), we already state that it would be fine for endpoints to retain keys for only two epochs at a time; that is why we already have the 3PTO requirement that @marten-seemann's proposal to relies on.",
+          "createdAt": "2023-06-14T23:58:38Z",
+          "updatedAt": "2023-06-14T23:59:32Z"
         }
       ]
     },
