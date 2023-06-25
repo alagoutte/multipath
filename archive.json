@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-06-18T00:57:36.304094+00:00",
+  "timestamp": "2023-06-25T01:02:39.670432+00:00",
   "repo": "quicwg/multipath",
   "labels": [
     {
@@ -5442,9 +5442,17 @@
       "labels": [],
       "body": "At the moment, [section 8.1](https://quicwg.org/multipath/draft-ietf-quic-multipath.html#section-8.1-5.2.1) sounds as ACK_MP frames cannot be used for acknowledging 0-RTT packets, even though 0-RTT packets and 1-RTT packets belong to the same packet number space ([RFC 9000 section 12.3](https://quicwg.org/base-drafts/rfc9000.html#section-12.3-5.6.1)).\r\n\r\n> Destination Connection ID Sequence Number:      The sequence number of the Connection ID identifying the packet number space of the 1-RTT packets which are acknowledged by the ACK_MP frame.\r\n",
       "createdAt": "2023-06-16T01:43:01Z",
-      "updatedAt": "2023-06-16T01:43:26Z",
+      "updatedAt": "2023-06-22T07:03:29Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yfmascgy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "That's a good catch and I agree with what you have changed in the text.",
+          "createdAt": "2023-06-22T07:03:29Z",
+          "updatedAt": "2023-06-22T07:03:29Z"
+        }
+      ]
     },
     {
       "number": 224,
@@ -5461,6 +5469,37 @@
       "updatedAt": "2023-06-16T01:52:26Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 226,
+      "id": "I_kwDOGNtpaM5pbz03",
+      "title": "sending ACK_MP for packets arriving on a path yet to be validated",
+      "url": "https://github.com/quicwg/multipath/issues/226",
+      "state": "OPEN",
+      "author": "kazuho",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "How is an endpoint supposed to send ACKs in response to packets arriving on paths that have not been validated yet?\r\n\r\nWhen receiving a packet on a new path, the receiver cannot send an ACK_MP frame on the new path. This is because ACK_MP frame is not defined as a probing frame.\r\n\r\nThe receiver has to either:\r\n* a) send ACK_MP on a different path that has been validated already, or\r\n* b) withhold sending ACK_MP frames until the receiver completes validation the new path\r\n\r\nEither approach has its own downsides. Option A is going to have negative impact on RTT estimates (see #190), option B will be a diversion from QUIC v1 and we need to write it down if such behavior is permissible. The other option (C) could be to state that ACK_MP frames are probing frames.\r\n\r\nDo we have a preference on the strategy?",
+      "createdAt": "2023-06-22T04:16:38Z",
+      "updatedAt": "2023-06-22T04:49:29Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think it is better to acknowledge sooner rather than hold on. The discussion on #190 suggest to \"just send the ACK on the available path\". The only caveat is the need to keep all paths alive, but challenges and responses do that.",
+          "createdAt": "2023-06-22T04:46:38Z",
+          "updatedAt": "2023-06-22T04:46:38Z"
+        },
+        {
+          "author": "yfmascgy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "My opinion is to go with option A. Suppose that a not-yet-validated path will soon be validated. The negative impact on RTT is going to be limited and smoothed out when new RTT samples arrive.",
+          "createdAt": "2023-06-22T04:49:29Z",
+          "updatedAt": "2023-06-22T04:49:29Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -20203,7 +20242,7 @@
       "labels": [],
       "body": "Closes #222.",
       "createdAt": "2023-06-16T01:48:05Z",
-      "updatedAt": "2023-06-16T01:48:05Z",
+      "updatedAt": "2023-06-22T07:02:34Z",
       "baseRepository": "quicwg/multipath",
       "baseRefName": "main",
       "baseRefOid": "71d30fce58f87cafa37bb1e1694b4cc6bac644c4",
@@ -20215,7 +20254,21 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOGNtpaM5Y9cNL",
+          "commit": {
+            "abbreviatedOid": "4843853"
+          },
+          "author": "yfmascgy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-22T07:02:34Z",
+          "updatedAt": "2023-06-22T07:02:34Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 225,
