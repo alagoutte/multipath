@@ -15,24 +15,22 @@
        This document specifies a multipath extension for the QUIC protocol to
 enable the simultaneous usage of multiple paths for a single connection. 
     " name="description">
-<meta content="xml2rfc 3.16.0" name="generator">
+<meta content="xml2rfc 3.17.3" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-ietf-quic-multipath-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.16.0
-    Python 3.10.10
+  xml2rfc 3.17.3
+    Python 3.11.4
     appdirs 1.4.4
     ConfigArgParse 1.5.3
-    google-i18n-address 2.5.2
-    html5lib 1.1
+    google-i18n-address 3.1.0
     intervaltree 3.1.0
     Jinja2 3.1.2
     lxml 4.9.2
-    MarkupSafe 2.1.1
     pycountry 22.3.5
     PyYAML 6.0
-    requests 2.28.1
-    setuptools 65.6.0
+    requests 2.31.0
+    setuptools 67.7.2
     six 1.16.0
     wcwidth 0.2.6
 -->
@@ -616,6 +614,7 @@ sub, sup {
   clear: left;
   float: left;
   text-align: right;
+  margin-right: 1ch;
 }
 #identifiers dd {
   margin: 0;
@@ -667,7 +666,8 @@ sub, sup {
 .references dt {
   text-align: right;
   font-weight: bold;
-  min-width: 7em;
+  min-width: 10ch;
+  margin-right: 1.5ch;
 }
 .references dt:target::before {
   content: "⇒";
@@ -675,7 +675,7 @@ sub, sup {
   margin: 0 10px 0 -25px;
 }
 .references dd {
-  margin-left: 8em !important;
+  margin-left: 12ch !important;
   overflow: auto;
 }
 
@@ -1053,11 +1053,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Multipath QUIC</td>
-<td class="right">March 2023</td>
+<td class="right">June 2023</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Liu, et al.</td>
-<td class="center">Expires 14 September 2023</td>
+<td class="center">Expires 29 December 2023</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-quic-multipath-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-03-13" class="published">13 March 2023</time>
+<time datetime="2023-06-27" class="published">27 June 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2023-09-14">14 September 2023</time></dd>
+<dd class="expires"><time datetime="2023-12-29">29 December 2023</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ enable the simultaneous usage of multiple paths for a single connection.<a href=
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 September 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 29 December 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1475,60 +1475,32 @@ the use of the multipath extension during the connection handshake,
 as specified in <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>. The new transport parameter is
 defined as follows:<a href="#section-3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3-2.1">name: enable_multipath (current version uses 0x0f739bbc1b666d04)<a href="#section-3-2.1" class="pilcrow">¶</a>
-</li>
-        <li class="normal" id="section-3-2.2">value: 0 (default) for disabled.<a href="#section-3-2.2" class="pilcrow">¶</a>
+<li class="normal" id="section-3-2.1">enable_multipath (current version uses 0x0f739bbc1b666d05): the
+enable_multipath transport parameter is included if the endpoint supports
+the multipath extension as defined in this document. This parameter has
+a zero-length value.<a href="#section-3-2.1" class="pilcrow">¶</a>
 </li>
       </ul>
-<p id="section-3-3">The valid options for the value field are listed in
-<a href="#param_value_definition" class="auto internal xref">Table 1</a>:<a href="#section-3-3" class="pilcrow">¶</a></p>
-<span id="name-available-value-for-enable_"></span><div id="param_value_definition">
-<table class="center" id="table-1">
-        <caption>
-<a href="#table-1" class="selfRef">Table 1</a>:
-<a href="#name-available-value-for-enable_" class="selfRef">Available value for enable_multipath</a>
-        </caption>
-<thead>
-          <tr>
-            <th class="text-left" rowspan="1" colspan="1">Option</th>
-            <th class="text-left" rowspan="1" colspan="1">Definition</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">0x0</td>
-            <td class="text-left" rowspan="1" colspan="1">don't support multipath</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">0x1</td>
-            <td class="text-left" rowspan="1" colspan="1">supports multipath as defined in this document</td>
-          </tr>
-        </tbody>
-      </table>
-</div>
-<p id="section-3-5">If for any one of the endpoints, the parameter is absent or set to 0,
-the endpoints MUST fallback to
-<span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span> with single active path and MUST NOT use any frame or
-mechanism defined in this document.<a href="#section-3-5" class="pilcrow">¶</a></p>
-<p id="section-3-6">If the parameter is set to 1, both endpoints MUST use non-zero connection
-IDs. If an enable_multipath parameter set to 1 is received and the carrying packet
-does not contain a non-zero length connection ID, the receiver MUST treat this as a connection error of type
+<p id="section-3-3">If any of the endpoints does not advertise the enable_multipath transport
+parameter, then the endpoints MUST fallback to <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span> with
+a single active path and MUST NOT use any frame or
+mechanism defined in this document.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">When advertising the enable_multipath transport parameter, the endpoint
+MUST use non-zero connection IDs. If an enable_multipath transport
+parameter is received and the carrying packet does not contain a non-zero
+length connection ID, the receiver MUST treat this as a connection error of type
 TRANSPORT_PARAMETER_ERROR (specified in <span><a href="https://rfc-editor.org/rfc/rfc9000#section-20.1" class="relref">Section 20.1</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>)
-and close the connection.<a href="#section-3-6" class="pilcrow">¶</a></p>
-<p id="section-3-7">If endpoint receives an unexpected value for the transport parameter
-"enable_multipath", it MUST treat this as a connection error of type
-TRANSPORT_PARAMETER_ERROR (specified in <span><a href="https://rfc-editor.org/rfc/rfc9000#section-20.1" class="relref">Section 20.1</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>)
-and close the connection.<a href="#section-3-7" class="pilcrow">¶</a></p>
-<p id="section-3-8">This extension does not change the definition of any transport parameter
-defined in <span><a href="https://rfc-editor.org/rfc/rfc9000#section-18.2." class="relref">Section 18.2.</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>.<a href="#section-3-8" class="pilcrow">¶</a></p>
-<p id="section-3-9">Inline with the definition in <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span> disable_active_migration
+and close the connection.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">This extension does not change the definition of any transport parameter
+defined in <span><a href="https://rfc-editor.org/rfc/rfc9000#section-18.2." class="relref">Section 18.2.</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">Inline with the definition in <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span> disable_active_migration
 also disables multipath support, except "after a client has acted on a
-preferred_address transport parameter" (<span><a href="https://rfc-editor.org/rfc/rfc9000#section-18.2." class="relref">Section 18.2.</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>).<a href="#section-3-9" class="pilcrow">¶</a></p>
-<p id="section-3-10">The transport parameter "active_connection_id_limit"
+preferred_address transport parameter" (<span><a href="https://rfc-editor.org/rfc/rfc9000#section-18.2." class="relref">Section 18.2.</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>).<a href="#section-3-6" class="pilcrow">¶</a></p>
+<p id="section-3-7">The transport parameter "active_connection_id_limit"
 <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span> limits the number of usable Connection IDs, and also
 limits the number of concurrent paths. For the QUIC multipath extension
 this limit even applies when no connection ID is exposed in the QUIC
-header.<a href="#section-3-10" class="pilcrow">¶</a></p>
+header.<a href="#section-3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="setup">
@@ -2209,11 +2181,11 @@ terrestrial path, with a latency of 50ms in each direction, and a
 geostationary satellite path, with a latency of 300ms in both
 directions.  The acknowledgement delay will depend on the combination
 of paths used for the packet transmission and the ACK transmission,
-as shown in <a href="#fig-example-ack-delay" class="auto internal xref">Table 2</a>.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+as shown in <a href="#fig-example-ack-delay" class="auto internal xref">Table 1</a>.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 <span id="name-example-of-ack-delays-using"></span><div id="fig-example-ack-delay">
-<table class="center" id="table-2">
+<table class="center" id="table-1">
           <caption>
-<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#table-1" class="selfRef">Table 1</a>:
 <a href="#name-example-of-ack-delays-using" class="selfRef">Example of ACK delays using multiple paths</a>
           </caption>
 <thead>
@@ -2269,25 +2241,20 @@ provides more robust measurements.<a href="#section-7.3-5" class="pilcrow">¶</a
         </h3>
 <p id="section-7.4-1">The transmission of QUIC packets on a regular QUIC connection is regulated
 by the arrival of data from the application and the congestion control
-scheme. QUIC packets can only be sent when the congestion window of
-at least one path is open.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
-<p id="section-7.4-2">Multipath QUIC implementations also need to include a packet scheduler
+scheme. QUIC packets that increase the number of bytes in flight can only be sent
+when the congestion window allows it.
+Multipath QUIC implementations also need to include a packet scheduler
 that decides, among the paths whose congestion window is open, the path
-over which the next QUIC packet will be sent. Many factors can influence
-the definition of these algorithms and their precise definition is
-outside the scope of this document. Various packet schedulers have been
-proposed and implemented, notably for Multipath TCP. A companion draft
-<span>[<a href="#I-D.bonaventure-iccrg-schedulers" class="cite xref">I-D.bonaventure-iccrg-schedulers</a>]</span> provides several general-purpose
-packet schedulers depending on the application goals.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
-<p id="section-7.4-3">Note that the receiver could use a different scheduling strategy to send
-ACK(_MP) frames. The recommended default behaviour consists in sending
-ACK(_MP) frames on the path they acknowledge packets. Other scheduling
-strategies, such as sending ACK(_MP) frames on the lowest latency
-path, might be considered, but they could impact the sender with side
-effects on, e.g., the RTT estimation or the congestion control scheme.
-When adopting such asymetrical acknowledgment scheduling, the receiver
-should at least ensure that the sender negotiated one-way delay
-calculation mechanism (e.g., <span>[<a href="#QUIC-Timestamp" class="cite xref">QUIC-Timestamp</a>]</span>).<a href="#section-7.4-3" class="pilcrow">¶</a></p>
+over which the next QUIC packet will be sent. Most frames, including
+control frames (PATH_CHALLENGE and PATH_RESPONSE being the notable
+exceptions), can be sent and received on any active path. The scheduling
+is a local decision, based on the preferences of the application and the
+implementation.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.4-2">Note that this implies that an endpoint may send and receive ACK_MP
+frames on a path different from the one that carried the acknowledged
+packets. A reasonable default consists in sending ACK_MP frames on the
+path they acknowledge packets, but the receiver must not assume its
+peer will do so.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="retransmissions">
@@ -2582,12 +2549,12 @@ more specific error codes.<a href="#section-9-3" class="pilcrow">¶</a></p>
 enable multiple paths for QUIC, and three new frame types. The draft defines
 provisional values for experiments, but we expect IANA to allocate
 short values if the draft is approved.<a href="#section-10-1" class="pilcrow">¶</a></p>
-<p id="section-10-2">The following entry in <a href="#transport-parameters" class="auto internal xref">Table 3</a> should be added to
+<p id="section-10-2">The following entry in <a href="#transport-parameters" class="auto internal xref">Table 2</a> should be added to
 the "QUIC Transport Parameters" registry under the "QUIC Protocol" heading.<a href="#section-10-2" class="pilcrow">¶</a></p>
 <span id="name-addition-to-quic-transport-"></span><div id="transport-parameters">
-<table class="center" id="table-3">
+<table class="center" id="table-2">
         <caption>
-<a href="#table-3" class="selfRef">Table 3</a>:
+<a href="#table-2" class="selfRef">Table 2</a>:
 <a href="#name-addition-to-quic-transport-" class="selfRef">Addition to QUIC Transport Parameters Entries</a>
         </caption>
 <thead>
@@ -2599,7 +2566,7 @@ the "QUIC Transport Parameters" registry under the "QUIC Protocol" heading.<a hr
         </thead>
         <tbody>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">TBD (current version uses 0x0f739bbc1b666d04)</td>
+            <td class="text-left" rowspan="1" colspan="1">TBD (current version uses 0x0f739bbc1b666d05)</td>
             <td class="text-left" rowspan="1" colspan="1">enable_multipath</td>
             <td class="text-left" rowspan="1" colspan="1">
               <a href="#nego" class="auto internal xref">Section 3</a>
@@ -2608,12 +2575,12 @@ the "QUIC Transport Parameters" registry under the "QUIC Protocol" heading.<a hr
         </tbody>
       </table>
 </div>
-<p id="section-10-4">The following frame types defined in <a href="#frame-types" class="auto internal xref">Table 4</a> should be added to
+<p id="section-10-4">The following frame types defined in <a href="#frame-types" class="auto internal xref">Table 3</a> should be added to
 the "QUIC Frame Types" registry under the "QUIC Protocol" heading.<a href="#section-10-4" class="pilcrow">¶</a></p>
 <span id="name-addition-to-quic-frame-type"></span><div id="frame-types">
-<table class="center" id="table-4">
+<table class="center" id="table-3">
         <caption>
-<a href="#table-4" class="selfRef">Table 4</a>:
+<a href="#table-3" class="selfRef">Table 3</a>:
 <a href="#name-addition-to-quic-frame-type" class="selfRef">Addition to QUIC Frame Types Entries</a>
         </caption>
 <thead>
@@ -2648,13 +2615,13 @@ the "QUIC Frame Types" registry under the "QUIC Protocol" heading.<a href="#sect
         </tbody>
       </table>
 </div>
-<p id="section-10-6">The following transport error code defined in <a href="#tab-error-code" class="auto internal xref">Table 5</a> should
+<p id="section-10-6">The following transport error code defined in <a href="#tab-error-code" class="auto internal xref">Table 4</a> should
 be added to the "QUIC Transport Error Codes" registry under
 the "QUIC Protocol" heading.<a href="#section-10-6" class="pilcrow">¶</a></p>
 <span id="name-error-code-for-multipath-qu"></span><div id="tab-error-code">
-<table class="center" id="table-5">
+<table class="center" id="table-4">
         <caption>
-<a href="#table-5" class="selfRef">Table 5</a>:
+<a href="#table-4" class="selfRef">Table 4</a>:
 <a href="#name-error-code-for-multipath-qu" class="selfRef">Error Code for Multipath QUIC</a>
         </caption>
 <thead>
