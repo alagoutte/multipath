@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-06-25T01:02:39.670432+00:00",
+  "timestamp": "2023-06-29T00:56:49.428588+00:00",
   "repo": "quicwg/multipath",
   "labels": [
     {
@@ -5378,9 +5378,17 @@
       "labels": [],
       "body": "The definition of the path status frame is somewhat ambiguous. When trying to implement that, I have many questions:\r\n\r\n1) If paths have a status, what is the default status of a path just after validation, and before receiving any Status frame?\r\n\r\n2) Who send this? From the draft, I think \"either endpoint\". But then, what does that mean if one endpoint says \"available\" and the other says \"standby\"?\r\n\r\n3) If a path is standby state and the endpoint receives validating frames on that path, does the status change?\r\n\r\n4) If a path is in standby state and no other path is in available state, does the standby path automatically become available?\r\n\r\n5) Do we really need to maintain a sequence counter for status frames per path and per direction?",
       "createdAt": "2023-06-03T23:34:14Z",
-      "updatedAt": "2023-06-03T23:34:14Z",
+      "updatedAt": "2023-06-27T08:57:54Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "qdeconinck",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "From the IETF 116 minutes (https://github.com/quicwg/wg-materials/blob/main/ietf116/minutes.md#multipath), there were support in splitting the current PATH_STATUS frame into smaller ones to avoid handling invalid/unknown values (e.g., PATH_AVAILABLE and a PATH_STANDBY frames).\r\n\r\nStill, the points raised above would also apply on such splitter frames. From my current understanding,\r\n\r\n> If paths have a status, what is the default status of a path just after validation, and before receiving any Status frame?\r\n\r\nAs long as no status information is received, I would consider a path as being \"available\" for use.\r\n\r\n> Who send this? From the draft, I think \"either endpoint\". But then, what does that mean if one endpoint says \"available\" and the other says \"standby\"?\r\n\r\nThat's a good point. I see use cases from a client-sending perspective, but I don't see why a server could not send statuses as well. The PATH_STATUS frame gives an indication about what should be its peer's path scheduling strategy, but it has no way of forcing the other to do so...\r\n\r\n> If a path is standby state and the endpoint receives validating frames on that path, does the status change?\r\n\r\nI would decouple the validation state of a network path from its status usage. In other words, I would not use implicit signals to change the (usage) status requested by the peer over a path.\r\n\r\n> If a path is in standby state and no other path is in available state, does the standby path automatically become available?\r\n\r\nI would say that if your peer advertises the path as being standby, you SHOULD not use it for non-probing packets, unless there is no working available paths. The concrete implementation of such a behaviour is implementation-specific, as this is a scheduling issue (starting from when do you consider that a path is not working anymore? if it experiences RTOs or being abandoned/closed?). Furthermore, in the case you have several standby paths (and no available ones), it is up to the endpoint to decide which path(s) to use (until receiving explicit signals).\r\n\r\n> Do we really need to maintain a sequence counter for status frames per path and per direction?\r\n\r\nFor sending, I think you could use a single counter for all paths and directions, if wanted. But at receiving side, each path needs to track the highest sequence number that updated its status, to cope with reordered receive patterns. For instance, if you have p1 being standby by the seq being 19, and p2 being available, updated by seq 18, and the receive frames in the following order:\r\n\r\n- Status (p1, seq=22, available) : highest seq on p1, update p1 to available\r\n- Status (p2, seq=21, standby): highest seq on p2, update p2 to standby\r\n- Status (p1, seq=20, standby): not the highest seq on p1, ignore old information",
+          "createdAt": "2023-06-27T08:57:54Z",
+          "updatedAt": "2023-06-27T08:57:54Z"
+        }
+      ]
     },
     {
       "number": 219,
@@ -5394,9 +5402,24 @@
       "labels": [],
       "body": "[RFC 9000 section 7.4.1](https://quicwg.org/base-drafts/rfc9000.html#section-7.4.1-3) states that _the definition of a new transport parameter MUST specify whether storing the transport parameter for 0-RTT is mandatory, optional, or prohibited,_ however it seems to me that is not specified for `enable_multipath`.\r\n\r\nRegarding what we should specify, I do not have a strong preference. To my knowledge all the changes introduced by Multipath QUIC affects 1-RTT packet number space. So I think it would be possible to say that the transport parameter is _not_ remembered. Though I'm not sure if that's the behavior we want.",
       "createdAt": "2023-06-16T01:09:47Z",
-      "updatedAt": "2023-06-16T01:09:47Z",
+      "updatedAt": "2023-06-28T07:17:47Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "body": "When we wrote RFC 9000, the only justification for remembering a TP was that this TP would make any difference when sending 0-RTT packets, i.e. up until completion of the handshake. Unless we want to make it possible to send 0-RTT packets on multiple paths (which would require some more involved changes, especially regarding the CIDs to use), we should prohibit remembering this TP.",
+          "createdAt": "2023-06-28T03:53:32Z",
+          "updatedAt": "2023-06-28T03:53:32Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "@marten-seemann I think we are in agreement that the answer to the question depends on if what's sent in 0-RTT is going to be different.\r\n\r\nThe problem here is that applications might want to send different 0-RTT data depending on if MP can be used. Multipath is different from other transport parameters in sense that it expects applications (rather than just QUIC stacks) to be written specifically for it.\r\n\r\nSo that can be the justification for defining the TP as remembered. Though, the other solution here would be to delegate the detection to ALPN; i.e., applications that require use of multipath MUST use ALPN in way that the handshake will fail unless MP is available.",
+          "createdAt": "2023-06-28T04:58:29Z",
+          "updatedAt": "2023-06-28T07:17:47Z"
+        }
+      ]
     },
     {
       "number": 220,
@@ -5410,9 +5433,17 @@
       "labels": [],
       "body": "At the moment, [section 5.1](https://quicwg.org/multipath/draft-ietf-quic-multipath.html#section-5.1-3) states:\r\n> As soon as the negotiation of multipath support is completed, endpoints SHOULD use ACK_MP frames instead of ACK frames to acknowledge application data packets, including 0-RTT packets, using the initial Connection ID with sequence number 0 after the handshake concluded.\r\n\r\nAs @qdeconinck states in https://github.com/quicwg/multipath/issues/181#issuecomment-1447937924, my understanding is that ACK frames are equivalent to ACK_MP frames carrying DCID value of zero. Omission of value zero saves one byte per ACK frame.\r\n\r\nIs the optimization worth the cost of supporting such omission?\r\n\r\nIf we think it might be valuable, I think we'd better change the text to state as such rather than discouraging the use of ACK frames (by saying \"SHOULD use ACK_MP\").\r\n\r\nIf we agree that it is not valuable, I would propose to change the specification to state that only ACK_MP frames can be used in the application data space when use of the multipath extension is negotiated.",
       "createdAt": "2023-06-16T01:22:09Z",
-      "updatedAt": "2023-06-16T01:22:09Z",
+      "updatedAt": "2023-06-28T03:48:45Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "body": "I agree that saving one byte for the very first CID is not very valuable, and I agree that it would be a really nice property to only use ACK_MP frames for the application data space.",
+          "createdAt": "2023-06-28T03:48:45Z",
+          "updatedAt": "2023-06-28T03:48:45Z"
+        }
+      ]
     },
     {
       "number": 221,
@@ -5482,7 +5513,7 @@
       "labels": [],
       "body": "How is an endpoint supposed to send ACKs in response to packets arriving on paths that have not been validated yet?\r\n\r\nWhen receiving a packet on a new path, the receiver cannot send an ACK_MP frame on the new path. This is because ACK_MP frame is not defined as a probing frame.\r\n\r\nThe receiver has to either:\r\n* a) send ACK_MP on a different path that has been validated already, or\r\n* b) withhold sending ACK_MP frames until the receiver completes validation the new path\r\n\r\nEither approach has its own downsides. Option A is going to have negative impact on RTT estimates (see #190), option B will be a diversion from QUIC v1 and we need to write it down if such behavior is permissible. The other option (C) could be to state that ACK_MP frames are probing frames.\r\n\r\nDo we have a preference on the strategy?",
       "createdAt": "2023-06-22T04:16:38Z",
-      "updatedAt": "2023-06-22T04:49:29Z",
+      "updatedAt": "2023-06-28T05:47:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -5498,6 +5529,27 @@
           "body": "My opinion is to go with option A. Suppose that a not-yet-validated path will soon be validated. The negative impact on RTT is going to be limited and smoothed out when new RTT samples arrive.",
           "createdAt": "2023-06-22T04:49:29Z",
           "updatedAt": "2023-06-22T04:49:29Z"
+        },
+        {
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "body": "Why not just include the ACK_MP frame with the PATH_CHALLENGE frame?\r\n\r\nRFC 9000 Section 8.2 allows including other frames:\r\n> An endpoint MAY include other frames with the PATH_CHALLENGE and PATH_RESPONSE frames used for path validation. In particular, an endpoint can include PADDING frames with a PATH_CHALLENGE frame for Path Maximum Transmission Unit Discovery (PMTUD)\r\n\r\nMaybe we should make it explicit (and encourage) that this also includes ACK_MP frames here?",
+          "createdAt": "2023-06-28T03:43:12Z",
+          "updatedAt": "2023-06-28T03:43:12Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "@marten-seemann I think the answer depends on what people want to do.\r\n\r\nIf some endpoints prefer sending acknowledgements on the path the packets were received, then yes, it would make sense for such endpoints to bundle PATH_RESPONSE and ACK_MP. That would be easy to implement and give good RTT estimate throughout the lifetime of the path.\r\n\r\nOTOH, I'm not sure if we want to encourage all endpoints to bundle PATH_RESPONSE and ACK_MP. There are cases where it makes sense to send acknowledgements on a path other than on which you receive packets. For example, when receiving a packet via a cellular network, it could make sense to send ACK_MP frames through Wifi, as the latter has lower latency in general. In such case, it would make sense to send all ACK_MP frames through Wifi rather than sending some through cellular as a bundle.",
+          "createdAt": "2023-06-28T05:38:33Z",
+          "updatedAt": "2023-06-28T05:38:33Z"
+        },
+        {
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "body": "Sending them on a different path seems fine too. I didn't mean to suggest to always send ACK_MP frames on the same path, I was just arguing that there's no situation where (b) would be the preferred option.",
+          "createdAt": "2023-06-28T05:47:01Z",
+          "updatedAt": "2023-06-28T05:47:01Z"
         }
       ]
     }
@@ -20242,7 +20294,7 @@
       "labels": [],
       "body": "Closes #222.",
       "createdAt": "2023-06-16T01:48:05Z",
-      "updatedAt": "2023-06-22T07:02:34Z",
+      "updatedAt": "2023-06-28T03:31:56Z",
       "baseRepository": "quicwg/multipath",
       "baseRefName": "main",
       "baseRefOid": "71d30fce58f87cafa37bb1e1694b4cc6bac644c4",
@@ -20267,6 +20319,32 @@
           "createdAt": "2023-06-22T07:02:34Z",
           "updatedAt": "2023-06-22T07:02:34Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5ZacTp",
+          "commit": {
+            "abbreviatedOid": "4843853"
+          },
+          "author": "qdeconinck",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-27T07:15:38Z",
+          "updatedAt": "2023-06-27T07:15:38Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5Zia3F",
+          "commit": {
+            "abbreviatedOid": "4843853"
+          },
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-28T03:31:56Z",
+          "updatedAt": "2023-06-28T03:31:56Z",
+          "comments": []
         }
       ]
     },
@@ -20282,7 +20360,7 @@
       "labels": [],
       "body": "Closes #224.",
       "createdAt": "2023-06-16T01:53:48Z",
-      "updatedAt": "2023-06-16T01:53:48Z",
+      "updatedAt": "2023-06-28T03:33:34Z",
       "baseRepository": "quicwg/multipath",
       "baseRefName": "main",
       "baseRefOid": "71d30fce58f87cafa37bb1e1694b4cc6bac644c4",
@@ -20294,7 +20372,167 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOGNtpaM5Zab5v",
+          "commit": {
+            "abbreviatedOid": "fdd1540"
+          },
+          "author": "qdeconinck",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-27T07:14:35Z",
+          "updatedAt": "2023-06-27T07:14:35Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5ZibFk",
+          "commit": {
+            "abbreviatedOid": "fdd1540"
+          },
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "I\u2019m having trouble parsing the original sentence. The new text lgtm.",
+          "createdAt": "2023-06-28T03:33:34Z",
+          "updatedAt": "2023-06-28T03:33:34Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 227,
+      "id": "PR_kwDOGNtpaM5T__aB",
+      "title": "enable_multipath as a zero-length transport parameter",
+      "url": "https://github.com/quicwg/multipath/pull/227",
+      "state": "OPEN",
+      "author": "qdeconinck",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The value of the transport parameter is a legacy of previous versions. Given the multipath support can be summarized as a boolean value, let's use a zero-length value TP.\r\n\r\nAlso updated the wire value of the TP, given its processing differs from the draft-04 TP.",
+      "createdAt": "2023-06-27T07:38:04Z",
+      "updatedAt": "2023-06-28T03:29:08Z",
+      "baseRepository": "quicwg/multipath",
+      "baseRefName": "main",
+      "baseRefOid": "71d30fce58f87cafa37bb1e1694b4cc6bac644c4",
+      "headRepository": "quicwg/multipath",
+      "headRefName": "fix-204",
+      "headRefOid": "1a7599680055738e92ba252c1c31c88e684d209b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOGNtpaM5Zcl_Z",
+          "commit": {
+            "abbreviatedOid": "1a75996"
+          },
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-27T11:55:02Z",
+          "updatedAt": "2023-06-27T11:55:02Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5Ziaff",
+          "commit": {
+            "abbreviatedOid": "1a75996"
+          },
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-28T03:28:59Z",
+          "updatedAt": "2023-06-28T03:29:08Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "Not introduced by this PR, but since the negotiation is happening in Long Header packets, this should probably specify if you\u2019re referring to source or destination CIDs.",
+              "createdAt": "2023-06-28T03:28:59Z",
+              "updatedAt": "2023-06-28T03:29:08Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 228,
+      "id": "PR_kwDOGNtpaM5UACbL",
+      "title": "ECN counts are per-path, not per connection",
+      "url": "https://github.com/quicwg/multipath/pull/228",
+      "state": "OPEN",
+      "author": "qdeconinck",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #216.",
+      "createdAt": "2023-06-27T07:47:47Z",
+      "updatedAt": "2023-06-28T05:00:06Z",
+      "baseRepository": "quicwg/multipath",
+      "baseRefName": "main",
+      "baseRefOid": "71d30fce58f87cafa37bb1e1694b4cc6bac644c4",
+      "headRepository": "quicwg/multipath",
+      "headRefName": "fix-216",
+      "headRefOid": "b1cff91479f6a0870672548bb9a48c07566e3e8a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOGNtpaM5ZcpQx",
+          "commit": {
+            "abbreviatedOid": "0b86b7f"
+          },
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-06-27T12:00:30Z",
+          "updatedAt": "2023-06-27T12:00:35Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "```suggestion\r\non the acknowledged packet number space up to this point.\r\n```\r\n\r\n\"acknowledged path\" can be confusing, as it might imply all the packet number spaces  (i.e., that of Initial, Handshake and the first application space) that share the original path. It'd be less confusing to repeat the phrasing of QUIC v1, stating that ECN counters are per-packet number space.",
+              "createdAt": "2023-06-27T12:00:30Z",
+              "updatedAt": "2023-06-27T12:00:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5ZiZjD",
+          "commit": {
+            "abbreviatedOid": "b1cff91"
+          },
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-28T03:22:10Z",
+          "updatedAt": "2023-06-28T03:22:10Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5ZiuIu",
+          "commit": {
+            "abbreviatedOid": "b1cff91"
+          },
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-06-28T05:00:06Z",
+          "updatedAt": "2023-06-28T05:00:06Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
