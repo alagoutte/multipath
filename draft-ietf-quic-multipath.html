@@ -2476,7 +2476,7 @@ that created the text.<a href="#section-8.2-5.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-8.2-6">PATH_ABANDON frames SHOULD be acknowledged. If a packet containing
+<p id="section-8.2-6">PATH_ABANDON frames are ack-eliciting. If a packet containing
 a PATH_ABANDON frame is considered lost, the peer SHOULD repeat it.<a href="#section-8.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2544,10 +2544,10 @@ PATH_STATUS frame if it previously received another PATH_STATUS frame
 for the same Destination Connection ID Sequence Number with a
 Path Status sequence number equal to or higher than the Path Status
 sequence number of the incoming frame.<a href="#section-8.3-8" class="pilcrow">¶</a></p>
-<p id="section-8.3-9">PATH_STATUS frames SHOULD be acknowledged. If a packet containing
-a PATH_STATUS frame is considered lost, the peer should only repeat it
-if it was the last status sent for that path -- as indicated by
-the sequence number.<a href="#section-8.3-9" class="pilcrow">¶</a></p>
+<p id="section-8.3-9">PATH_STATUS frames are ack-eliciting. If a packet containing a
+PATH_STATUS frame is considered lost, the peer SHOULD resend the frame
+only if it contains the last status sent for that path -- as indicated
+by the sequence number.<a href="#section-8.3-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
