@@ -307,9 +307,7 @@ Table of Contents
 
    The transport parameter "active_connection_id_limit" [QUIC-TRANSPORT]
    limits the number of usable Connection IDs, and also limits the
-   number of concurrent paths.  For the QUIC multipath extension this
-   limit even applies when no connection ID is exposed in the QUIC
-   header.
+   number of concurrent paths.
 
 4.  Path Setup and Removal
 
