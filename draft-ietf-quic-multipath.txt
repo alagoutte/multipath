@@ -5,7 +5,7 @@
 QUIC Working Group                                           Y. Liu, Ed.
 Internet-Draft                                                     Y. Ma
 Intended status: Standards Track                            Alibaba Inc.
-Expires: 14 September 2023                            Q. De Coninck, Ed.
+Expires: 1 January 2024                               Q. De Coninck, Ed.
                                                                UCLouvain
                                                           O. Bonaventure
                                                   UCLouvain and Tessares
@@ -13,7 +13,7 @@ Expires: 14 September 2023                            Q. De Coninck, Ed.
                                                     Private Octopus Inc.
                                                       M. Kuehlewind, Ed.
                                                                 Ericsson
-                                                           13 March 2023
+                                                            30 June 2023
 
 
                       Multipath Extension for QUIC
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 September 2023.
+   This Internet-Draft will expire on 1 January 2024.
 
 Copyright Notice
 
@@ -1105,8 +1105,8 @@ Table of Contents
    following field is added.
 
    Destination Connection ID Sequence Number:  The sequence number of
-      the Connection ID identifying the packet number space of the 1-RTT
-      packets which are acknowledged by the ACK_MP frame.
+      the Connection ID identifying the packet number space of the 0-RTT
+      and 1-RTT packets which are acknowledged by the ACK_MP frame.
 
 8.2.  PATH_ABANDON Frame
 
