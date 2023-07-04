@@ -5,7 +5,7 @@
 QUIC Working Group                                           Y. Liu, Ed.
 Internet-Draft                                                     Y. Ma
 Intended status: Standards Track                            Alibaba Inc.
-Expires: 1 January 2024                               Q. De Coninck, Ed.
+Expires: 5 January 2024                               Q. De Coninck, Ed.
                                                                UCLouvain
                                                           O. Bonaventure
                                                   UCLouvain and Tessares
@@ -13,7 +13,7 @@ Expires: 1 January 2024                               Q. De Coninck, Ed.
                                                     Private Octopus Inc.
                                                       M. Kuehlewind, Ed.
                                                                 Ericsson
-                                                            30 June 2023
+                                                             4 July 2023
 
 
                       Multipath Extension for QUIC
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 January 2024.
+   This Internet-Draft will expire on 5 January 2024.
 
 Copyright Notice
 
@@ -602,7 +602,7 @@ Table of Contents
    exception of the ACK_MP frame.  An endhost MAY bundle the ACK_MP
    frame with the PATH_RESPONSE frame; in this case it is RECOMMANDED to
    consider the acknowledgement information as opportunistic and repeat
-   the acknowledged pacjet ranges in the next ACK_MP frame.
+   the acknowledged packet ranges in the next ACK_MP frame.
    Alternatively ACK_MP frames can be sent any other active path.
 
    The endhost can use all the paths in the "Active" state, provided
