@@ -5,7 +5,7 @@
 QUIC Working Group                                           Y. Liu, Ed.
 Internet-Draft                                                     Y. Ma
 Intended status: Standards Track                            Alibaba Inc.
-Expires: 29 December 2023                             Q. De Coninck, Ed.
+Expires: 5 January 2024                               Q. De Coninck, Ed.
                                                                UCLouvain
                                                           O. Bonaventure
                                                   UCLouvain and Tessares
@@ -13,7 +13,7 @@ Expires: 29 December 2023                             Q. De Coninck, Ed.
                                                     Private Octopus Inc.
                                                       M. Kuehlewind, Ed.
                                                                 Ericsson
-                                                            27 June 2023
+                                                             4 July 2023
 
 
                       Multipath Extension for QUIC
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 December 2023.
+   This Internet-Draft will expire on 5 January 2024.
 
 Copyright Notice
 
@@ -275,11 +275,12 @@ Table of Contents
    or mechanism defined in this document.
 
    When advertising the enable_multipath transport parameter, the
-   endpoint MUST use non-zero connection IDs.  If an enable_multipath
-   transport parameter is received and the carrying packet does not
-   contain a non-zero length connection ID, the receiver MUST treat this
-   as a connection error of type TRANSPORT_PARAMETER_ERROR (specified in
-   Section 20.1 of [QUIC-TRANSPORT]) and close the connection.
+   endpoint MUST use non-zero source and destination connection IDs.  If
+   an enable_multipath transport parameter is received and the carrying
+   packet does not contain a non-zero length connection ID, the receiver
+   MUST treat this as a connection error of type
+   TRANSPORT_PARAMETER_ERROR (specified in Section 20.1 of
+   [QUIC-TRANSPORT]) and close the connection.
 
    This extension does not change the definition of any transport
    parameter defined in Section 18.2. of [QUIC-TRANSPORT].
