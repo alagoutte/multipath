@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-07-02T00:59:37.906056+00:00",
+  "timestamp": "2023-07-04T00:58:18.040614+00:00",
   "repo": "quicwg/multipath",
   "labels": [
     {
@@ -82,6 +82,11 @@
       "name": "needs PR",
       "description": "",
       "color": "F9D0C4"
+    },
+    {
+      "name": "on hold",
+      "description": "",
+      "color": "d4c5f9"
     }
   ],
   "issues": [
@@ -1325,7 +1330,7 @@
       ],
       "body": "As we have 0-RTT transmission in QUIC-TRANSPORT, and path validation brings at lease one round-trip-time delay for data to be sent on the new path, can we add some mechanism to provide anti-amplification limitation and support this scenario?",
       "createdAt": "2021-10-25T12:31:26Z",
-      "updatedAt": "2023-03-15T06:32:54Z",
+      "updatedAt": "2023-07-03T01:49:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -1355,6 +1360,20 @@
           "body": "We may want to develop a security section a bit more. The only reason to send data frames immediately is the potential for reflection attacks if a peer can be induced to send data on an invalid path. There are degrees of fear. For example, if the destination address is already validated on another path and this is just the client trying sending from a different interface, then the fear-factor is very low. The only risk is that for some reason the new path will not work, causing retransmissions. The sender implementation may want to take the risk.\r\n\r\nOn the other hand, if this is a new destination address, the risk of DOSsing some innocent target is substantial, so maybe only send a minimum amount of traffic!",
           "createdAt": "2023-03-15T06:32:54Z",
           "updatedAt": "2023-03-15T06:32:54Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "I am coming to the impression that we should just get rid of \"probing\" state altogether. That's an unnecessary complexity in Multipath.\r\n\r\nOf course, path validation is necessary when an endpoint sends packets to a new remote address. However, from the standpoint of security, there is no need to have \"probing\" state that forbids an endpoint from sending most types of frames.\r\n\r\nIIRC, the only reason we have the distinction of probing packets and non-probing packets in QUIC v1 is because QUIC v1 has only one loss recovery and congestion controller. As there is one, a QUIC v1 endpoint has to send signal that indicates to peer the change of the active path (i.e., the path that uses loss recovery and congestion controller) - that is what non-probing packets are used for.\r\n\r\nWith Multipath QUIC, we have per-path loss recovery and congestion control. Then, why do we have to keep the concept of \"probing\" and \"non-probing\" packets and frames at all?\r\n\r\nWe can just allow any types of frames to be sent even in the packets used to validate a new path, and call it a day.",
+          "createdAt": "2023-07-03T01:22:38Z",
+          "updatedAt": "2023-07-03T01:24:04Z"
+        },
+        {
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "body": "That\u2019s an interesting idea, @kazuho! I like getting rid of the concept of probing and non-probing frames / packets.\r\n\r\nIt would probably make sense to recommend including a PATH_STATUS frame in the packet containing the PATH_CHALLENGE. Alternatively, we could also define a default status that applies if no PATH_STATUS has been sent yet (there\u2019s a discussion about that in #218).\r\n\r\nAt the very least, whatever we come up with needs to support the following two common scenarios:\r\n1. Establishing a \u201cbackup path\u201d: This is very common for mobile devices that might want to validate a cellular path even when they\u2019re connected to a strong WiFi. In that case, there needs to be a way to make sure that a clear preference for the WiFi path can be expressed.\r\n2. The \u201cparking lot\u201d case, i.e. a mobile device moving away from a WiFi, and wishing to switch to the cellular path asap. In that case, the client would want to communicate a preference for the new path, as soon as this new path is available and validated.\r\n\r\nIf I understand correctly, both scenarios are supported by using PATH_STATUS frames.",
+          "createdAt": "2023-07-03T01:49:09Z",
+          "updatedAt": "2023-07-03T01:49:09Z"
         }
       ]
     },
@@ -2658,11 +2677,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "editorial"
+        "editorial",
+        "no-action-needed"
       ],
       "body": "Do we need some pseudocode like [RFC 9002 Appendix-A](https://datatracker.ietf.org/doc/html/rfc9002#appendix-A) and [Appendix-B](https://datatracker.ietf.org/doc/html/rfc9002#appendix-B) to describe the loss recovery and congestion control processes which are different in multiple paths?  Besides, some of the functions are different in multiple and single packet number space. \r\nThis might be helpful when people try to understand and implement the mechanisms.\r\n\r\n",
       "createdAt": "2022-03-10T12:27:12Z",
-      "updatedAt": "2023-03-15T08:51:17Z",
+      "updatedAt": "2023-07-03T12:32:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -2699,6 +2719,13 @@
           "body": "I think the current content of Section 7.2 (Implementation Considerations: Congestion Control) is sufficient. If at some point we would want to provide pseudocode for such algorithms, they would better be located in companion drafts (that would describe such algorithms), but not this base one.",
           "createdAt": "2023-03-15T08:51:16Z",
           "updatedAt": "2023-03-15T08:51:16Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Can we close this issue?",
+          "createdAt": "2023-07-03T12:32:50Z",
+          "updatedAt": "2023-07-03T12:32:50Z"
         }
       ]
     },
@@ -3094,11 +3121,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "editorial"
+        "editorial",
+        "needs PR"
       ],
       "body": "The current draft says \"If timestamps are not available, implementations could estimate one way delays using statistical techniques\". I find the word \"statistical\" a bit too broad. Can we elaborate what is the exact statistical method recommended to use? Moreover, \"statistical\" also implies variation and randomness, what happens for applications that do not expect such randomness?",
       "createdAt": "2022-07-08T09:59:55Z",
-      "updatedAt": "2023-03-10T14:31:13Z",
+      "updatedAt": "2023-07-03T12:47:23Z",
       "closedAt": null,
       "comments": [
         {
@@ -3135,6 +3163,13 @@
           "body": "Revisiting this issue now, I wonder if we should just take the same approach as the scheduling guidance, i.e., say the less and delegate advanced discussions in a potential future draft.",
           "createdAt": "2023-03-10T14:31:13Z",
           "updatedAt": "2023-03-10T14:31:13Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Even if we don't provide the more detailed information in the appendix, the section on \"Computing Path RTT\" needs an editorial pass. I agree that the term \"statistical techniques\" is not very clear. I guess one option is also to say rather less than more.\r\n\r\n@huitema can you have a look and propose a PR?",
+          "createdAt": "2023-07-03T12:39:35Z",
+          "updatedAt": "2023-07-03T12:39:35Z"
         }
       ]
     },
@@ -3696,7 +3731,7 @@
       ],
       "body": "Which the newly merged PR #149, the doc now says:\r\n\r\n\"If the parameter is set to 1, both endpoints MUST use non-zero connection IDs. If an enable_multipath parameter set to 1 is received and the carrying packet does not contain a non-zero length connection ID, the receiver MUST treat this as a connection error of type TRANSPORT_PARAMETER_ERROR (specified in {{Section 20.1 of QUIC-TRANSPORT}}) and close the connection.\"\r\n\r\nIs it okay to use the TRANSPORT_PARAMETER_ERROR code for this or do we need a different/new one?",
       "createdAt": "2023-01-24T16:54:22Z",
-      "updatedAt": "2023-06-30T16:56:00Z",
+      "updatedAt": "2023-07-03T12:45:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -3726,6 +3761,13 @@
           "body": "Discussion at IETF 116 indicated a strong preference for a new error code here.",
           "createdAt": "2023-03-30T00:54:19Z",
           "updatedAt": "2023-03-30T00:54:19Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We already have the MP_PROTOCOL_VIOLATION. This is currently used a) if the wrong encryption level is used, however, we will change that (see issue #207) and b) if a cid seq number is used in a MP frame that was not assigned yet.\r\n\r\nI guess we want two different error codes for the case b above and the case where there is no CID in the handshake, right?\r\n\r\nI think the case b above should be a more specific error code like MP_INVALID_FRAME or even MP_INVALID_CID_SEQ_NUM. Do we want to use MP_PROTOCOL_VIOLATION for the handshake case or also give it a more specific name?",
+          "createdAt": "2023-07-03T12:45:50Z",
+          "updatedAt": "2023-07-03T12:45:50Z"
         }
       ]
     },
@@ -4143,7 +4185,7 @@
       "id": "I_kwDOGNtpaM5e-ncu",
       "title": "Would it be beneficial to use the same Path ID on both sides?",
       "url": "https://github.com/quicwg/multipath/issues/170",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "mirjak",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -4152,8 +4194,8 @@
       ],
       "body": "Currently the Path ID is selected based on the sequence number of the CID used to send. Alternatively we could also, add an explicit path ID in the path validation frame that is then used by both ends. This would be possible in the current spec as we assume all path to be bi-directional and only the client can open new paths, and thus could select a unique path ID. This might simplify the mental model for implementors. ",
       "createdAt": "2023-02-21T13:18:59Z",
-      "updatedAt": "2023-03-06T20:13:00Z",
-      "closedAt": null,
+      "updatedAt": "2023-07-03T10:24:28Z",
+      "closedAt": "2023-07-03T10:24:28Z",
       "comments": [
         {
           "author": "huitema",
@@ -4174,11 +4216,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "editorial"
+        "editorial",
+        "needs PR"
       ],
       "body": "Section 4.3.1 and 4.3.3 talk a lot about \"releasing resources\" however, it's not always clear with resources should be released. Can we be more clear here?",
       "createdAt": "2023-02-21T15:18:40Z",
-      "updatedAt": "2023-02-21T15:33:46Z",
+      "updatedAt": "2023-07-03T12:47:41Z",
       "closedAt": null,
       "comments": []
     },
@@ -4194,11 +4237,12 @@
         "yfmascgy"
       ],
       "labels": [
+        "has PR",
         "editorial"
       ],
       "body": "Should we add that?",
       "createdAt": "2023-02-21T15:20:49Z",
-      "updatedAt": "2023-03-03T15:05:43Z",
+      "updatedAt": "2023-07-03T12:47:07Z",
       "closedAt": null,
       "comments": []
     },
@@ -4679,14 +4723,17 @@
       "state": "OPEN",
       "author": "qdeconinck",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "mirjak"
+      ],
       "labels": [
+        "has PR",
         "design",
-        "needs PR"
+        "needs-discussion"
       ],
       "body": "The draft currently defines two possible values in the PATH_STATUS frame. However, it does not defines if other values are usable, neither does a receiver should behave with alternate values.\r\n\r\nProbably the right behaviour would be to state that alternate values might be application-dependent, and otherwise the status value might be ignored.",
       "createdAt": "2023-03-03T17:31:37Z",
-      "updatedAt": "2023-06-30T12:58:10Z",
+      "updatedAt": "2023-07-03T13:33:16Z",
       "closedAt": null,
       "comments": [
         {
@@ -4695,6 +4742,13 @@
           "body": "Discussed in IETF 116, strong sense in the room to use two different frame types instead",
           "createdAt": "2023-03-30T01:03:28Z",
           "updatedAt": "2023-03-30T01:03:28Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I started a PR for this issue. See #242. However this needs more discussion as there are multiple options which all my have some problems.\r\n\r\nOption 1) The current PR creates two new frames. The idea of this change was to make it easy to add potential new status value in future by simply adding a new frame. However, having separate frames means the frames may arrive in different orders. In PATH_STATUS we had a frame sequence number; but to guarantee order among frames, this would mean all \"path-status\" frames would need to share a seq number space. I don't think that would be a complicated solution to implement but it does not feel like a clean design to have these dependencies among frames.\r\n\r\nOption 2) We could have a one PATH_STANDBY frame which always contains a full list of all CID seq numbers that should have this state and as such any update would always replace the old state. That means we could signal multiple updates in one frame, which can beneficial e.g. if you change CIDs on all paths, and further we would not need the PATH_AVAILABLE frame at all. However, this only works with two path states and also not if we in future want to define another path status frame. However, are we sure we need different exclusive states? E.g. If you would later define a path priority, this information can be orthogonal to the standby information rather than replacing it.\r\n\r\nOption 3) Only allow sending of path status information on the same path that the updates applies to and use the packet number for ordering. However, this means you cannot \"assign\" status information to a CID before the CID is used which at least theoretically would be possible with the other solutions. However, maybe it's sufficient to ensure that if a new CID is used the respective path status frame is sent in the first packet with this new CID. Not sure how complicated that would be for some implementations. Also is using packet number for order a good choice? Might also be complicated for some implementations...?\r\n\r\nOr Option 4, I guess, is to keep the current PATH_STATUS frame (and find a different way to make it extensible or make any future extensive a full replacement).",
+          "createdAt": "2023-07-03T13:32:38Z",
+          "updatedAt": "2023-07-03T13:32:38Z"
         }
       ]
     },
@@ -4708,11 +4762,13 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "design"
+        "has PR",
+        "design",
+        "needs-discussion"
       ],
       "body": "Taking side-discussion of #169 in its own issue.\r\n\r\n> I think we can use path ID mechanism of the current draft with the addition of the following rules to address the issues discussed in this thread:\r\n\r\n> (1) Addressing the corner case when new CID and NAT rebinding happen at the same time. When an endpoint receives a packet that has (new CID, new tuple), check if the packet is trying to initialize a new path (i.e., whether it contains a PATH_CHALLENGE). If it has PATH_CHALLENGE, try creating a new path. If it has no PATH_CHALLENGE and we don't know which path the packet is associated with (num. of paths>=2), discard the packet. If there is only one path, we perform path validation as single path QUIC does.",
       "createdAt": "2023-03-06T08:52:45Z",
-      "updatedAt": "2023-03-13T15:24:59Z",
+      "updatedAt": "2023-07-03T13:36:17Z",
       "closedAt": null,
       "comments": [
         {
@@ -4916,11 +4972,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "design"
+        "design",
+        "on hold"
       ],
-      "body": "We might also discuss somewhere that you probably need to send an update if the peer changes the CID on that path. But maybe that a bit more discuss we need to have here. Maybe in this case it's better if the path_status frame could hold information for multiple CID or even provide somehow an assignment to a certain path status for future CID, so if then endpoint want to change it's CID on a path it can use a CID that is already assigned to the same property...?",
+      "body": "We might also discuss somewhere that you probably need to send an update if the peer changes the CID on that path. But maybe that a bit more discussion we need to have here. Maybe in this case it's better if the path_status frame could hold information for multiple CID or even provide somehow an assignment to a certain path status for future CID, so if then endpoint want to change it's CID on a path it can use a CID that is already assigned to the same property...?",
       "createdAt": "2023-03-13T15:11:10Z",
-      "updatedAt": "2023-03-30T05:30:36Z",
+      "updatedAt": "2023-07-03T13:39:34Z",
       "closedAt": null,
       "comments": [
         {
@@ -4936,6 +4993,13 @@
           "body": "Thinking for about this further and following the loose path ID model, we can actually not really restrict the signalling to only CIDs that are already in use because we don't have a good understanding for which CIDs at any point in time are \"in active use\". So that means an indicated path status could relate to any issued CID and we would leave it actually to the implementation if they want to \"assign\" a certain set of CIDs to a certain kind of path status in advance or only after a CID is observed on a path.\r\n\r\nEffectively this, however, also means that an endpoint could provide only one CID for active use and all others for stand-by only, basically telling the other side to always only use one active path at a time. But not sure if that's overly great to have that as an implicit limitation. Or maybe it's a useful feature?\r\n\r\nOne more thought is that we could potentially also provide the path status at the time of issuing the CID (e.g. replacing the NEW_CONNECTION_ID frame with a new frame). However, you might still want a way to change the path state later... or not and you \"just\" change the CID instead...?",
           "createdAt": "2023-03-30T05:30:35Z",
           "updatedAt": "2023-03-30T05:30:35Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This issue is on hold until we decide what to do with the PATH_STATUS frame, see issue #186 ",
+          "createdAt": "2023-07-03T13:38:59Z",
+          "updatedAt": "2023-07-03T13:38:59Z"
         }
       ]
     },
@@ -4956,7 +5020,7 @@
       ],
       "body": "Now, I might be making an assumption, but I believe that some of the authors/editors on the draft are currently using latin transliterations of their names.  We have the ability to use real names, can we do that?\r\n\r\n(Note: we need to ask; I have had some people express a desire to only use the latin version of their name.  The most important thing is to respect individual wishes.)",
       "createdAt": "2023-03-30T00:46:57Z",
-      "updatedAt": "2023-06-30T10:30:07Z",
+      "updatedAt": "2023-07-02T07:22:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -4965,6 +5029,13 @@
           "body": "@Yanmei-Liu @yfmascgy how do you prefer to have you names listed? Please create a PR if you want to change or close this issue! Thanks!",
           "createdAt": "2023-06-30T10:29:50Z",
           "updatedAt": "2023-06-30T10:29:50Z"
+        },
+        {
+          "author": "yfmascgy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Many thanks! I think it's a good idea to also use our actual name. I was trying to input my Chinese name in Unicode as &#x9A6C;&#x4E91;&#x98DE; but when I tried make I got the following error saying that it did not find alphanumeric character \r\n\r\n\"/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0/psych.rb:456:in `parse': (<unknown>): did not find expected alphabetic or numeric character while scanning an anchor at line 25 column 10 (Psych::SyntaxError)\". I am wondering if there is a simple fix for this issue?\r\n",
+          "createdAt": "2023-07-02T07:21:08Z",
+          "updatedAt": "2023-07-02T07:22:21Z"
         }
       ]
     },
@@ -5032,12 +5103,12 @@
         "mirjak"
       ],
       "labels": [
-        "design",
-        "needs PR"
+        "has PR",
+        "design"
       ],
       "body": "Section 4.1 of the Multipath draft states: _Following [[QUIC-TRANSPORT](https://quicwg.org/multipath/draft-ietf-quic-multipath.html#QUIC-TRANSPORT)], each endpoint uses NEW_CONNECTION_ID frames to issue usable connections IDs to reach it. Before an endpoint adds a new path by initiating path validation, it MUST check whether at least one unused Connection ID is available for each side._\r\n\r\nI do not think it is possible to perform such checks reliably, as RFC 9000 allows the peer to start using spare Connection IDs at any moment.\r\n\r\nIn [RFC 9000 section 5.1.1](https://quicwg.org/base-drafts/rfc9000.html#name-issuing-connection-ids), we state that _an endpoint that initiates migration and requires non-zero-length connection IDs SHOULD ensure that the pool of connection IDs available to its peer allows the peer to use a new connection ID on migration, as the peer will be unable to respond if the pool is exhausted._ \r\n\r\nConsidering that Multipath is as extension of v1, I think it might just be sufficient to use what we already have (probably adding a pointer to the above text in RFC 9000) and calling it a day.",
       "createdAt": "2023-03-30T06:35:15Z",
-      "updatedAt": "2023-06-30T17:11:53Z",
+      "updatedAt": "2023-07-03T14:36:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -5366,10 +5437,12 @@
       "author": "marten-seemann",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "design"
+      ],
       "body": "The current version of the draft introduces a very tight coupling between paths and connection IDs. This feels unnatural, since QUIC was designed such that CIDs can be rotated (potentially very) frequently, even in the absence of any path migration / probing.\r\n\r\nThe tight coupling in this draft leads to a whole range of problems:\r\n1. It complicates path state management. The CID used to establish a path might be retired, and a different CID may be used on that path. I'm struggling to figure out which sequence number to send in PATH_STATUS frames in this case. There's the risk that PATH_* frames can't be associated with a (still existing!) path because the CID was retired.\r\n2. When initiating a new path, there's a requirement to check that 1. the endpoint itself has a CID available for that path and 2. the peer also has a CID available. Note that this inherently racy: The peer might just have started using that CID on a different path.\r\n3. Loss recovery: As the packet number is reset to 0 when switching to a new CID. On the wire, this means that packets received on the same path now need to be acknowledged in separate ACK_MP frames. Implementations would now put a lot of effort into running loss recovery across the multiple packet number spaces belonging to the same path.\r\n\r\nI believe the design would become significantly easier if CIDs were scoped to the path to begin with:\r\n* This would mean adding a Path ID varint to the existing NEW_CONNECTION_ID frame (or alternatively, deprecating NEW_CONNECTION_ID in favor of a new MP_NEW_CONNECTION_ID frame). Same for the RETIRE_CONNECTION_ID frame. Sequence numbers for CIDs would now be incremented per path (i.e. any path would start with CID number 0).\r\n* The `active_connection_id_limit` transport parameter could be reinterpreted to mean the maximum number of active connection IDs _per path_. It could be accompanied by a `active_path_limit` transport parameter to allow the client to limit the number of paths.\r\n\r\nI believe this would resolve the problems described above. In addition, this has a few nice properties:\r\n1. The server would explicitly limit how many paths it is willing to accept. Credit for additional paths could be granted over the lifetime of the connection by sending NEW_CONNECTION_ID with new path IDs.\r\n2. The utility of the \"Retire Prior To\" field of the RETIRE_CONNECTION_ID frame would be restored: \"Retire Prior To\" would only apply to CIDs issued on that particular path.\r\n3. A neat implementation strategy on the client side would be to bundle a NEW_CONNECTION_ID frame for the new path in the packet containing the PATH_CHALLENGE frame. Maybe we could even introduce a protocol requirement that a client MUST NOT issue connection IDs for unused paths?\r\n4. It would simplify CID management when paths are retired: Just remove all CIDs associated with a path when (or shortly after) it's retired.\r\n\r\nIt has not escaped my attention that this proposal suggests another strategy for key management, which - among others - would simplify the key update problem. I'll follow up in a separate issue.",
       "createdAt": "2023-04-02T14:16:53Z",
-      "updatedAt": "2023-06-30T15:59:02Z",
+      "updatedAt": "2023-07-03T13:35:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -5483,6 +5556,41 @@
           "body": "I don't really understand why defining a new frame type is such a big deal. Frame types are cheap, we have 2^62 of them.\r\n\r\n> INTENDED_PATH {Path ID: B}\r\n> NEW_CONNECTION_ID {..., Connection ID: 1234, ...}\r\n> NEW_CONNECTION_ID {..., Connection ID: 5678, ...}\r\n> INTENDED_PATH {Path ID: A}\r\n> Any other control frame intended for path A {...}\r\n> STREAM_FRAME {Stream ID: x, offset: y, Stream Data:[...]}\r\n\r\nThis proposal on the other hand would be a major inconsistency with RFC 9000's frame semantics. RFC 9000 is very careful to  1. not assign any meaning to the order that frames occur in a packet and 2. is explicitly designed such that every frame can be interpreted on its own. \r\nPlease don't break with these principles. That's a way bigger difference from RFC 9000 than introducing a new frame type or two.\r\n",
           "createdAt": "2023-06-30T15:59:02Z",
           "updatedAt": "2023-06-30T15:59:02Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "Having almost implemented Multipath draft as-is, I think I share the view with what @huitema says in https://github.com/quicwg/multipath/issues/214#issuecomment-1493655066. To me it path IDs seem to be an complexity that might not be necessary.\r\n\r\nThe complexities that I'm concerned include:\r\n* The need to change the definitions of various frames (e.g., NEW_CONNECTION_ID) in QUIC v1 to include Path ID. This point is mentioned above.\r\n* The need to prepare for having state of max(active_paths) * max(1 + backups_for_each_path), rather than just max(active_connection_id_limit). IIUC, the proposal is to introduce the concept of Path IDs with each of the path having spare Connection IDs that the peer might use.\r\n\r\nCompared to these, I do not think there is a lot of benefit in introducing Path IDs. Sure, we might no longer need to iterate (or do a hash lookup of) certain structures, but we have to iterate others anyways. As we have multiple packet number spaces, we have to do a lookup of ack queue (when receiving packets) and also a lookup of loss recovery state (when receiving acks). Considering that these N:1 mapping is going to exist anyways, I'm not sure if getting rid of only some is worth having more diversion from QUIC v1.\r\n\r\nAs stated in https://github.com/quicwg/multipath/issues/50#issuecomment-1617086967, I tend to think that QUIC v1 already is a multipath protocol with the exception that only one path can be used for sending data at a time; my preference seems to go to just fixing that problem rather than introducing a new concept of having multiple path-groups with each group having only one active path.",
+          "createdAt": "2023-07-03T04:46:13Z",
+          "updatedAt": "2023-07-03T04:55:42Z"
+        },
+        {
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "body": "> Compared to these, I do not think there is a lot of benefit in introducing Path IDs. Sure, we might no longer need to iterate (or do a hash lookup of) certain structures, but we have to iterate others anyways. As we have multiple packet number spaces, we have to do a lookup of ack queue (when receiving packets) and also a lookup of loss recovery state (when receiving acks).\r\n\r\n@kazuho, I'm not concerned about hash table lookup latencies.\r\nWhat I'm concerned about are the 3 problems I described in my first post (and key updates, see #215). When talking about diversion from RFC 9000, I'm surprised adding a new frame type is considered a big diff. It's really easy to build a frame parser, and we're not going to run out of frame types any time soon. Deviating from the design principles of RFC 9000 on the other hand can create an enormous amount of complexity.\r\n\r\nI agree that (1) and (3) would go away _iff_ you never rotate CIDs on an existing path. While rotating CIDs can be seen as an anti-ossification measure, I think I remember that @nibanks is using Retire Prior To field in the NEW_CONNECTION_ID frame with his RSS implementation in MsQuic.\r\n\r\nIt seems like this feature of RFC 9000 is effectively rendered useless, unless one wants to risk running into the corner cases described in section 4.3.3 around having established paths that don't have an associated CID (and therefore can't be addressed by PATH_* frames). I haven't implemented it yet in quic-go, but I imagine that this corner case would be rather annoying to deal with.\r\n\r\n(3) introduces a very big diff to RFC 9000: Loss recovery for the two packet number spaces created by rotating the CID on a path seems pretty complicated: You'd now either have to declare the packet sent with the old CID lost if it's not acknowledged, or implement loss recovery that spans the two packet number spaces. It's probably doable, but it's not trivial. It's also fundamentally different from QUIC v1, where rotating a CID on an existing path doesn't create a new packet number space.\r\n\r\n> * The need to prepare for having state of max(active_paths) * max(1 + backups_for_each_path), rather than just max(active_connection_id_limit). IIUC, the proposal is to introduce the concept of Path IDs with each of the path having spare Connection IDs that the peer might use.\r\n\r\nYou're right, you'd need to allocate a tiny bit more space for CIDs. I don't expect that there are many situations where you'd have more than 5 paths (that already seems quite a lot), and you don't need more than 2 or 3 CIDs per path, even if you want to allow for frequent rotation of CIDs. That's not a lot of state.",
+          "createdAt": "2023-07-03T06:27:28Z",
+          "updatedAt": "2023-07-03T06:27:28Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "@marten-seemann Thank you for sharing your thoughts.\r\n\r\n> I agree that (1) and (3) would go away iff you never rotate CIDs on an existing path. While rotating CIDs can be seen as an anti-ossification measure, I think I remember that @nibanks is using Retire Prior To field in the NEW_CONNECTION_ID frame with his RSS implementation in MsQuic.\r\n\r\nSo I think i disagree with this view.\r\n\r\nFWIW, we also rotate CID encryption keys, I assume every server that support clustering (load balancing) does. But that does not happen frequently, I believe that is the same for others as well. Therefore, problem (1) is IMO not an issue in practice.\r\n\r\nNote that, in order to handle packets arriving late, an endpoint has to be capable for receiving packets with CIDs that it has issued in the past for at least 3 PTO. Therefore, even in the case of an endpoint rotating CIDs at full speed, there will be high chance of PATH_STATUS getting through.\r\n\r\nRe (3), when changing the CID of an existing path, all an endpoint needs to do is remember the delta (base offset) between the packet number sent on the wire and that being remembered by the loss recovery logic / congestion controller. To give an example, if an endpoint has sent using CID=X packets up to PN=1000, and wants to switch CID to Y, all it needs to remember is an offset of 1001. The first packet sent with CID=Y will carry PN=0, but internally, it would be handled as PN=1001 by adding the offset.\r\n\r\nThe remaining one is (2), but I do not consider that as an issue. In practice, a new CID is used when either of the following happens: i) a client tries to use a new path, ii) a server sends a packet to a new client address. To support these two cases, all that have to be done by the endpoints are provide as many as active_connection_id_limit CIDs, and by the clients to always keep one spare CID or two (see #221).\r\n\r\nNote that while QUIC v1 does not prohibit endpoints rotating CIDs for no reason, endpoints behaving as such risk themselves of losing CIDs, as [the peer might run out of CIDs and stop providing more](https://quicwg.org/base-drafts/rfc9000.html#section-5.1.1-6).\r\n\r\nPS.\r\n> You're right, you'd need to allocate a tiny bit more space for CIDs.\r\n\r\nThe amount of state that you need to retain depends on what you want to do e.g., in response to an apparent rebinding. As discussed in https://github.com/quicwg/multipath/issues/50#issuecomment-1617086967, for a server, it makes sense to bundle data in a probe sent in response to an apparent rebinding. In a request-response protocol, doing so saves an RTT. But to do so, you need more state per CID not to mention the complexity of reusing CCs across multiple paths; things are much easier with current design that allows a server to start using a new new packet number space for a new path that _the server_ observes (rather than letting the proposed \"path ID\" approach that lets only the client designate packet spaces).",
+          "createdAt": "2023-07-03T07:27:28Z",
+          "updatedAt": "2023-07-03T09:55:45Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The problem with the explicit path ID approach is that you can't  guarantee in all cases that the client and server have the same view of the open paths. The complicated case is when the client changes the CID and at the same time a NAT rebinding happens. This seems like a corner case but it's completely not unlikely because NAT rebinding usually happen after some idle time and that might also be the reason for the client to re-start sending with a fresh CID. This was also discussed at length in issue #169 \r\n\r\nWe need to address this case and that makes the explicit path ID approach complicated. Having an explicit path ID seems logical easier and for sure it make sense for the mental model, however, encoding it in the protocol design means actually additional complexity.\r\n\r\nRegarding your issue list @marten-seemann:\r\n\r\nNote that we need to resign PATH_STATUS anyway (see issue #186). However, first, PATH_STATUS is only a recommendation. If you don't have PATH_STATUS information about a used CID, that doesn't automatically mean that you should use it. So If you see a CID change on a path, I don't think this should automatically change your scheduling. The other option is in the loose path model that you could even send PATH_STATUS information for issued but not yet-used CIDs in advance and thereby per-set that information. Or if you could also send the PATH_STATUS frame in the packet with a new CID or even repeat it multiple times if you really want to be sure. Again, we need to redesign PATH_STATUS and we need to consider the issue you describe; this is a known issue that wasn't fully resolved with the last revision.\r\n\r\nYou second point is discussed in issue #205 and it is incorrect to have a MUST requirement for the availability of CIDs on the other end. This is something you can't guarantee but this is already the case in RFC9000. So I think it's rather an editorial issue to remove this requirement from the current draft.\r\n\r\nRegarding loss recovery, I think @huitema answer this point already. The expectation is that you do not do loss recovery between to packet number spaces. If the CID and therefore the packet number changes and a loss might happen in that RTT, then recovery might be slower as you have to wait for a time-out. However, that's such a rare case that I wouldn't recommend to optimise it because of the complexity you describe above.\r\n\r\n  ",
+          "createdAt": "2023-07-03T10:43:52Z",
+          "updatedAt": "2023-07-03T10:43:52Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "issue #169 as some discussion but was closed as that aspect was replaces by issue #188. Please have a look for more background.",
+          "createdAt": "2023-07-03T13:35:05Z",
+          "updatedAt": "2023-07-03T13:35:05Z"
         }
       ]
     },
@@ -5495,10 +5603,12 @@
       "author": "marten-seemann",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "design"
+      ],
       "body": "Building on top of my proposal to get more explicit about Path IDs (#214), I believe there's an easier solution to the key derivation mechanism.\r\n\r\nWe could derive a new key per path using a HKDF (putting the path ID into the context or label). Each path would then have its own key. This means that:\r\n1. The path ID wouldn't need to be attached to the nonce.\r\n2. Key updates would then happen separately for every path. This removes the need to do anything special (as compared to RFC 9001) for key updates. Especially it wouldn't be necessary to synchronize key updates across paths (see #209 for problems associated with that logic).\r\n\r\nThis requires #214, since CIDs would now tightly bound to a path. The receiver of a packet would first determine the path ID of a packet from the connection ID used.",
       "createdAt": "2023-04-02T14:18:56Z",
-      "updatedAt": "2023-04-02T14:18:56Z",
+      "updatedAt": "2023-07-03T10:21:15Z",
       "closedAt": null,
       "comments": []
     },
@@ -5621,13 +5731,12 @@
       "authorAssociation": "MEMBER",
       "assignees": [],
       "labels": [
-        "question",
         "design",
         "needs-discussion"
       ],
       "body": "At the moment, [section 5.1](https://quicwg.org/multipath/draft-ietf-quic-multipath.html#section-5.1-3) states:\r\n> As soon as the negotiation of multipath support is completed, endpoints SHOULD use ACK_MP frames instead of ACK frames to acknowledge application data packets, including 0-RTT packets, using the initial Connection ID with sequence number 0 after the handshake concluded.\r\n\r\nAs @qdeconinck states in https://github.com/quicwg/multipath/issues/181#issuecomment-1447937924, my understanding is that ACK frames are equivalent to ACK_MP frames carrying DCID value of zero. Omission of value zero saves one byte per ACK frame.\r\n\r\nIs the optimization worth the cost of supporting such omission?\r\n\r\nIf we think it might be valuable, I think we'd better change the text to state as such rather than discouraging the use of ACK frames (by saying \"SHOULD use ACK_MP\").\r\n\r\nIf we agree that it is not valuable, I would propose to change the specification to state that only ACK_MP frames can be used in the application data space when use of the multipath extension is negotiated.",
       "createdAt": "2023-06-16T01:22:09Z",
-      "updatedAt": "2023-06-30T16:50:47Z",
+      "updatedAt": "2023-07-03T21:06:44Z",
       "closedAt": null,
       "comments": [
         {
@@ -5643,6 +5752,27 @@
           "body": "The only \"valuable\" case I can see is that if you negotiate multipath support but then don't use any additional path, your behaviour would not need to different from single path QUIC. Not sure how valuable that is. Therefore I think we want to encourage use of the ACK_MP.\r\n\r\nHowever, I also don't really see the value of enforcing the use of ACK_MP...? You have to handle normal ACK frames anyway in the handshake. Why would a MUST make any real difference here?",
           "createdAt": "2023-06-30T15:46:47Z",
           "updatedAt": "2023-06-30T15:46:47Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "I think there are two reasons to forbid ACK being used in the application packet number space.\r\n\r\nThe first reason is that having less variation is better. In my view, having less variation on wire reduces the amount of tests that we have to write, helps us improve software quality. In QUIC v1, I recall we tried to tighten what can be sent on the wire, calling out numerous unnecessary cases as protocol violation.\r\n\r\nThe second reason is that we might want to change how acks behave (e.g., if ack is a probing frame; see #226). We can define the properties of ACK_MP, but there would be a lot more friction to change that of ACKs. So the trade off here is if we want to have two types of ACKs that behave differently, or just one.",
+          "createdAt": "2023-07-03T01:14:41Z",
+          "updatedAt": "2023-07-03T01:14:41Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm not convinced. I'm not sure we have a good solution for #226 yet and I think we should minimise the difference to ACK as much as we can. I guess we need more input from the working group!",
+          "createdAt": "2023-07-03T13:45:01Z",
+          "updatedAt": "2023-07-03T13:45:01Z"
+        },
+        {
+          "author": "yfmascgy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The original intention was that in case when multipath was negotiated but only one path was employed, the multipath could smoothly fall back to single path and behave just like the single path QUIC. This is designed for situations like when your client's SDK and server support multipath quic but your cellphone only has one interface to use (Wifi is not connected or cellular data is turned off). If we force the use of ACK_MP, then the their behaviors diverge before a second path is added.\r\n\r\nRegarding the issue #226 , I think maybe we still want to keep ACK_MP as non probing, and try to ack the probing frame from a path that has already been validated. ",
+          "createdAt": "2023-07-03T21:06:44Z",
+          "updatedAt": "2023-07-03T21:06:44Z"
         }
       ]
     },
@@ -5749,7 +5879,7 @@
       ],
       "body": "How is an endpoint supposed to send ACKs in response to packets arriving on paths that have not been validated yet?\r\n\r\nWhen receiving a packet on a new path, the receiver cannot send an ACK_MP frame on the new path. This is because ACK_MP frame is not defined as a probing frame.\r\n\r\nThe receiver has to either:\r\n* a) send ACK_MP on a different path that has been validated already, or\r\n* b) withhold sending ACK_MP frames until the receiver completes validation the new path\r\n\r\nEither approach has its own downsides. Option A is going to have negative impact on RTT estimates (see #190), option B will be a diversion from QUIC v1 and we need to write it down if such behavior is permissible. The other option (C) could be to state that ACK_MP frames are probing frames.\r\n\r\nDo we have a preference on the strategy?",
       "createdAt": "2023-06-22T04:16:38Z",
-      "updatedAt": "2023-06-30T16:50:16Z",
+      "updatedAt": "2023-07-03T21:09:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -5814,6 +5944,20 @@
           "body": "Given everybody likes and implemented the bundling, I created PR #239 with the following text:\r\n\r\n```\r\nAn endhost SHOULD NOT send\r\nnon-probing frames on a path in \"Validating\" state, as it has no\r\nguarantee that packets will actually reach the peer, with an exception\r\nof the ACK_MP frame. An endhost MAY bundle the ACK_MP frame with the \r\nPATH_RESPONSE frame; in this case it is RECOMMANDED to consider\r\nthe acknowledgement information as opportunistic and repeat\r\nthe acknowledged pacjet ranges in the next ACK_MP frame.\r\nAlternatively ACK_MP frames can be sent any other active path.\r\n```\r\n\r\nRather than saying ACK_MP frames are probing frames which I'm not sure generally makes sense, I think it is better to be explicitly about this case. Do people think use of normative language makes sense here?",
           "createdAt": "2023-06-30T16:49:59Z",
           "updatedAt": "2023-06-30T16:49:59Z"
+        },
+        {
+          "author": "kazuho",
+          "authorAssociation": "MEMBER",
+          "body": "> Rather than saying ACK_MP frames are probing frames which I'm not sure generally makes sense, I think it is better to be explicitly about this case.\r\n\r\nI am not sure if I appreciate that approach - having rules based on types of packets, then having exceptions is hard to maintain.\r\n\r\nIn case of quicly, we use [a table that defines the properties of each frame](https://github.com/h2o/quicly/blob/c046b6029de9ad6be57b5b7a846c1d7bd26eadd2/lib/quicly.c#L6293-L6328) and refer to them before / after calling the frame handlers. I would not be surprised if other stacks take the same approach. It is hard to handle exceptions when stacks are written that way, not to mention the difficulty of analyzing the prototol.",
+          "createdAt": "2023-07-03T01:31:27Z",
+          "updatedAt": "2023-07-03T01:31:27Z"
+        },
+        {
+          "author": "yfmascgy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "My question is why not we send ACK_MP from a path that has already been validated. Is there any issue for doing that?",
+          "createdAt": "2023-07-03T21:09:18Z",
+          "updatedAt": "2023-07-03T21:09:18Z"
         }
       ]
     },
@@ -6020,12 +6164,29 @@
       "author": "nandsky",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "editorial"
+      ],
       "body": "As described in [Section 1. Introduction](https://quicwg.org/multipath/draft-ietf-quic-multipath.html#name-introduction):\r\n\r\n> * Congestion Control must be per-path **(following [[QUIC-TRANSPORT](https://quicwg.org/multipath/draft-ietf-quic-multipath.html#QUIC-TRANSPORT)])** which usually also requires per-path RTT measurements\r\n\r\nBut what [RFC 9000 9.4. Loss Detection and Congestion Control](https://www.rfc-editor.org/rfc/rfc9000#name-loss-detection-and-congesti) says:\r\n\r\n> While multiple paths might be used during connection migration, a single congestion control context and a single loss recovery context (as described in [[QUIC-RECOVERY](https://www.rfc-editor.org/rfc/rfc9000#QUIC-RECOVERY)]) could be adequate. For instance, an endpoint might delay switching to a new congestion control context until it is confirmed that an old path is no longer needed (such as the case described in [Section 9.3.3](https://www.rfc-editor.org/rfc/rfc9000#off-path-forward)).\r\n\r\nIn my option,  it is necessary to maintain a CC state machine per path, but rfc 9000 does not require that?\r\n",
       "createdAt": "2023-07-01T14:40:49Z",
-      "updatedAt": "2023-07-01T14:41:40Z",
+      "updatedAt": "2023-07-03T10:19:46Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yfmascgy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "It is often necessary to have separate CCs when you want to use multiple paths for concurrent transmission. If the paths' bottlenecks are not shared, it is very likely that one path is congested while the other is not. In the case of a share bottleneck , coupled CC may be used, but you still need CC state per path. For our experience, coupled CC did not perform well so we generally use non-coupled CC per path.",
+          "createdAt": "2023-07-02T07:27:36Z",
+          "updatedAt": "2023-07-02T07:27:36Z"
+        },
+        {
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "body": "RFC9000 allows to not reset the cc on migration if you are rather certain that the path actually didn't change. This is also still allowed in the multipath extension because in this case it's a migration event and not a new path. I don't see a conflict.",
+          "createdAt": "2023-07-03T10:19:12Z",
+          "updatedAt": "2023-07-03T10:19:12Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -20790,7 +20951,7 @@
       "labels": [],
       "body": "This proposed text updates the discussion of RTT computation and ACK_MP scheduling in the Example section, which is not normative. The proposed text reflects the discussion during the working group meeting in Yokohama, and aligns with the apparent consensus that emerged during the discussion.",
       "createdAt": "2023-04-06T04:38:58Z",
-      "updatedAt": "2023-06-30T08:50:14Z",
+      "updatedAt": "2023-07-03T22:17:47Z",
       "baseRepository": "quicwg/multipath",
       "baseRefName": "main",
       "baseRefOid": "71d30fce58f87cafa37bb1e1694b4cc6bac644c4",
@@ -20860,6 +21021,66 @@
               "body": "Which algorithm exactly?",
               "createdAt": "2023-06-30T08:48:00Z",
               "updatedAt": "2023-06-30T08:48:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5aFCi3",
+          "commit": {
+            "abbreviatedOid": "828fa5b"
+          },
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-07-03T14:06:53Z",
+          "updatedAt": "2023-07-03T14:06:53Z",
+          "comments": [
+            {
+              "originalPosition": 44,
+              "body": "Commenting on this PR after the merge: in the example that you cite, the smoothed RTT will actually be very close to the RTT via the shortest path + maybe 1 ACK delay. ACK_MP frames are redondant. If you send ACK alternately on short and long path, the ACK on the short path will arrive before the one on the long path. When the ACK on the long path arrives, its \"highest\" packet will already have been acked as part of a range carried on the short path, so it will not contribute to RTT computation.",
+              "createdAt": "2023-07-03T14:06:53Z",
+              "updatedAt": "2023-07-03T14:07:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5Zz7-n",
+          "commit": {
+            "abbreviatedOid": "828fa5b"
+          },
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-06-30T08:50:13Z",
+          "updatedAt": "2023-07-03T16:59:30Z",
+          "comments": [
+            {
+              "originalPosition": 69,
+              "body": "Not sure if convergence is the right term here. I think it might actually not work if you keep using multiple paths for ACKs.",
+              "createdAt": "2023-06-30T08:50:13Z",
+              "updatedAt": "2023-07-03T16:59:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOGNtpaM5aGF2m",
+          "commit": {
+            "abbreviatedOid": "828fa5b"
+          },
+          "author": "mirjak",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-07-03T17:06:03Z",
+          "updatedAt": "2023-07-03T17:06:04Z",
+          "comments": [
+            {
+              "originalPosition": 44,
+              "body": "Only if you send ACKs multiple time per RTT and the latency difference between the path is large.\r\n\r\nSo maybe we should rather not make any default recommendations but just explain the problems and non-problems in different alternatives...?\r\n\r\n(btw. which merge are you talking about? This PR is not merged yet)",
+              "createdAt": "2023-07-03T17:06:03Z",
+              "updatedAt": "2023-07-03T17:06:04Z"
             }
           ]
         }
@@ -21682,6 +21903,72 @@
               "updatedAt": "2023-07-01T00:43:18Z"
             }
           ]
+        }
+      ]
+    },
+    {
+      "number": 242,
+      "id": "PR_kwDOGNtpaM5Uhofj",
+      "title": "Replace PATH_STATUS with PATH_AVAILABLE and PATH_STANDBY",
+      "url": "https://github.com/quicwg/multipath/pull/242",
+      "state": "OPEN",
+      "author": "mirjak",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "fixes #186 \r\n\r\nHowever, this is not ready to merge. This is only a first starting point and needs more work. See issue #186 for further discussion!",
+      "createdAt": "2023-07-03T13:15:29Z",
+      "updatedAt": "2023-07-03T13:15:29Z",
+      "baseRepository": "quicwg/multipath",
+      "baseRefName": "main",
+      "baseRefOid": "4db9b5cfad7b4943202563eb9011ef28412dfb47",
+      "headRepository": "quicwg/multipath",
+      "headRefName": "mirjak-patch-26",
+      "headRefOid": "8e04a2eb14bf07116dbd2107b35fd8381e83f492",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 243,
+      "id": "PR_kwDOGNtpaM5Uh5OC",
+      "title": "Remove must check CIDs on both sides",
+      "url": "https://github.com/quicwg/multipath/pull/243",
+      "state": "OPEN",
+      "author": "mirjak",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "fixes #205",
+      "createdAt": "2023-07-03T13:58:36Z",
+      "updatedAt": "2023-07-03T16:00:03Z",
+      "baseRepository": "quicwg/multipath",
+      "baseRefName": "main",
+      "baseRefOid": "4db9b5cfad7b4943202563eb9011ef28412dfb47",
+      "headRepository": "quicwg/multipath",
+      "headRefName": "mirjak-patch-27",
+      "headRefOid": "90fb943fae5e11018e1f4097dd9afc7066bef030",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOGNtpaM5aFx1f",
+          "commit": {
+            "abbreviatedOid": "90fb943"
+          },
+          "author": "marten-seemann",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-07-03T16:00:03Z",
+          "updatedAt": "2023-07-03T16:00:03Z",
+          "comments": []
         }
       ]
     }
