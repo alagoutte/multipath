@@ -1334,9 +1334,9 @@ particular, this proposal uses path validation as specified for QUIC
 version 1 and aims to re-use as much as possible of QUIC's connection
 migration.<a href="#section-1-3.1" class="pilcrow">¶</a>
 </li>
-        <li class="normal" id="section-1-3.2">Use the same packet header formats as QUIC version 1 to avoid the
-risk of packets being dropped by middleboxes (which may only support
-QUIC version 1)<a href="#section-1-3.2" class="pilcrow">¶</a>
+        <li class="normal" id="section-1-3.2">Use the same packet header formats as QUIC version 1 to minimize
+the difference between multipath and non-multipath traffic being
+exposed on wire.<a href="#section-1-3.2" class="pilcrow">¶</a>
 </li>
         <li class="normal" id="section-1-3.3">Congestion Control must be per-path (following <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>)
 which usually also requires per-path RTT measurements<a href="#section-1-3.3" class="pilcrow">¶</a>
