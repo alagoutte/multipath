@@ -2,8 +2,8 @@
 
 
 
-QUIC Working Group                                  马云飞 (Y. Liu), Ed.
-Internet-Draft                                                     Y. Ma
+QUIC Working Group                                  刘彦梅 (Y. Liu), Ed.
+Internet-Draft                                            马云飞 (Y. Ma)
 Intended status: Standards Track                            Alibaba Inc.
 Expires: 6 January 2024                               Q. De Coninck, Ed.
                                                                UCLouvain
@@ -1351,13 +1351,18 @@ Authors' Addresses
 
    Additional contact information:
 
-      马云飞 (editor)
+      刘彦梅 (editor)
       Alibaba Inc.
 
 
    Yunfei Ma
    Alibaba Inc.
    Email: yunfei.ma@alibaba-inc.com
+
+   Additional contact information:
+
+      马云飞
+      Alibaba Inc.
 
 
    Quentin De Coninck (editor)
