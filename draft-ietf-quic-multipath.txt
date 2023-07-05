@@ -264,36 +264,20 @@ Table of Contents
    as specified in [QUIC-TRANSPORT].  The new transport parameter is
    defined as follows:
 
-   *  name: enable_multipath (current version uses 0x0f739bbc1b666d04)
+   *  enable_multipath (current version uses 0x0f739bbc1b666d05): the
+      enable_multipath transport parameter is included if the endpoint
+      supports the multipath extension as defined in this document.
+      This parameter has a zero-length value.
 
-   *  value: 0 (default) for disabled.
+   If any of the endpoints does not advertise the enable_multipath
+   transport parameter, then the endpoints MUST NOT use any frame or
+   mechanism defined in this document.
 
-   The valid options for the value field are listed in Table 1:
-
-        +========+================================================+
-        | Option | Definition                                     |
-        +========+================================================+
-        | 0x0    | don't support multipath                        |
-        +--------+------------------------------------------------+
-        | 0x1    | supports multipath as defined in this document |
-        +--------+------------------------------------------------+
-
-               Table 1: Available value for enable_multipath
-
-   If for any one of the endpoints, the parameter is absent or set to 0,
-   the endpoints MUST fallback to [QUIC-TRANSPORT] with single active
-   path and MUST NOT use any frame or mechanism defined in this
-   document.
-
-   If the parameter is set to 1, both endpoints MUST use non-zero
-   connection IDs.  If an enable_multipath parameter set to 1 is
-   received and the carrying packet does not contain a non-zero length
-   connection ID, the receiver MUST treat this as a connection error of
-   type TRANSPORT_PARAMETER_ERROR (specified in Section 20.1 of
-   [QUIC-TRANSPORT]) and close the connection.
-
-   If endpoint receives an unexpected value for the transport parameter
-   "enable_multipath", it MUST treat this as a connection error of type
+   When advertising the enable_multipath transport parameter, the
+   endpoint MUST use non-zero source and destination connection IDs.  If
+   an enable_multipath transport parameter is received and the carrying
+   packet does not contain a non-zero length connection ID, the receiver
+   MUST treat this as a connection error of type
    TRANSPORT_PARAMETER_ERROR (specified in Section 20.1 of
    [QUIC-TRANSPORT]) and close the connection.
 
@@ -932,7 +916,7 @@ Table of Contents
    geostationary satellite path, with a latency of 300ms in both
    directions.  The acknowledgement delay will depend on the combination
    of paths used for the packet transmission and the ACK transmission,
-   as shown in Table 2.
+   as shown in Table 1.
 
             +======================+=============+===========+
             | ACK Path \ Data path | Terrestrial | Satellite |
@@ -942,7 +926,7 @@ Table of Contents
             | Satellite            | 350ms       | 600ms     |
             +----------------------+-------------+-----------+
 
-              Table 2: Example of ACK delays using multiple
+              Table 1: Example of ACK delays using multiple
                                   paths
 
    Using the default algorithm specified in [QUIC-RECOVERY] would result
@@ -1218,19 +1202,19 @@ Table of Contents
    draft defines provisional values for experiments, but we expect IANA
    to allocate short values if the draft is approved.
 
-   The following entry in Table 3 should be added to the "QUIC Transport
+   The following entry in Table 2 should be added to the "QUIC Transport
    Parameters" registry under the "QUIC Protocol" heading.
 
       +==========================+==================+===============+
       | Value                    | Parameter Name.  | Specification |
       +==========================+==================+===============+
       | TBD (current version     | enable_multipath | Section 3     |
-      | uses 0x0f739bbc1b666d04) |                  |               |
+      | uses 0x0f739bbc1b666d05) |                  |               |
       +--------------------------+------------------+---------------+
 
-           Table 3: Addition to QUIC Transport Parameters Entries
+           Table 2: Addition to QUIC Transport Parameters Entries
 
-   The following frame types defined in Table 4 should be added to the
+   The following frame types defined in Table 3 should be added to the
    "QUIC Frame Types" registry under the "QUIC Protocol" heading.
 
       +==============================+==============+===============+
@@ -1246,9 +1230,9 @@ Table of Contents
       | 0xbaba06)                    |              |               |
       +------------------------------+--------------+---------------+
 
-               Table 4: Addition to QUIC Frame Types Entries
+               Table 3: Addition to QUIC Frame Types Entries
 
-   The following transport error code defined in Table 5 should be added
+   The following transport error code defined in Table 4 should be added
    to the "QUIC Transport Error Codes" registry under the "QUIC
    Protocol" heading.
 
@@ -1260,7 +1244,7 @@ Table of Contents
    | use 0xba01)  |                       |violation  |               |
    +--------------+-----------------------+-----------+---------------+
 
-                  Table 5: Error Code for Multipath QUIC
+                  Table 4: Error Code for Multipath QUIC
 
 11.  Security Considerations
 
