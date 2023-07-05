@@ -655,11 +655,7 @@ Table of Contents
    the initial Connection ID with sequence number 0 after the handshake
    concluded.
 
-   ACK_MP frame (defined in Section 8.1) SHOULD be sent on the path it
-   received packet with the Connection ID of the packet number space it
-   acknowledges.  However, an ACK_MP frame can be returned via a
-   different path, based on different strategies of sending ACK_MP
-   frames.
+   ACK_MP frames (defined in Section 8.1) can be returned on any path.
 
 5.2.  Packet Protection
 
