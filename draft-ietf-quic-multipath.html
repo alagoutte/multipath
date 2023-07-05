@@ -2336,7 +2336,7 @@ closed after the idle timeout expires.<a href="#section-7.8-4" class="pilcrow">�
 <p id="section-8-1">All the new frames MUST only be sent in 1-RTT packet, and MUST NOT
 use other encryption levels.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <p id="section-8-2">If an endpoint receives multipath-specific frames from packets of
-other encryption levels, it MUST return MP_PROTOCOL_VIOLATION
+other encryption levels, it MUST return FRAME_ENCODING_ERROR
 as a connection error and close the connection.<a href="#section-8-2" class="pilcrow">¶</a></p>
 <p id="section-8-3">All multipath-specific frames relate to a Destination Connection
 ID sequence number. If an endpoint receives a Destination Connection ID
