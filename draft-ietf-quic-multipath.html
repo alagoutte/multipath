@@ -1498,7 +1498,9 @@ also disables multipath support, except "after a client has acted on a
 preferred_address transport parameter" (<span><a href="https://rfc-editor.org/rfc/rfc9000#section-18.2." class="relref">Section 18.2.</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>).<a href="#section-3-6" class="pilcrow">¶</a></p>
 <p id="section-3-7">The transport parameter "active_connection_id_limit"
 <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span> limits the number of usable Connection IDs, and also
-limits the number of concurrent paths.<a href="#section-3-7" class="pilcrow">¶</a></p>
+limits the number of concurrent paths. However, endpoints might prefer to retain
+spare Connection IDs so that they can respond to unintentional migration events
+(<span><a href="https://rfc-editor.org/rfc/rfc9000#section-9.5" class="relref">Section 9.5</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>).<a href="#section-3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="setup">
