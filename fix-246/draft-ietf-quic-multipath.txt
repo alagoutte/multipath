@@ -125,9 +125,9 @@ Table of Contents
       QUIC version 1 and aims to re-use as much as possible of QUIC's
       connection migration.
 
-   *  Use the same packet header formats as QUIC version 1 to avoid the
-      risk of packets being dropped by middleboxes (which may only
-      support QUIC version 1)
+   *  Use the same packet header formats as QUIC version 1 to minimize
+      the difference between multipath and non-multipath traffic being
+      exposed on wire.
 
    *  Congestion Control must be per-path (following [QUIC-TRANSPORT])
       which usually also requires per-path RTT measurements
@@ -264,36 +264,20 @@ Table of Contents
    as specified in [QUIC-TRANSPORT].  The new transport parameter is
    defined as follows:
 
-   *  name: enable_multipath (current version uses 0x0f739bbc1b666d04)
+   *  enable_multipath (current version uses 0x0f739bbc1b666d05): the
+      enable_multipath transport parameter is included if the endpoint
+      supports the multipath extension as defined in this document.
+      This parameter has a zero-length value.
 
-   *  value: 0 (default) for disabled.
+   If any of the endpoints does not advertise the enable_multipath
+   transport parameter, then the endpoints MUST NOT use any frame or
+   mechanism defined in this document.
 
-   The valid options for the value field are listed in Table 1:
-
-        +========+================================================+
-        | Option | Definition                                     |
-        +========+================================================+
-        | 0x0    | don't support multipath                        |
-        +--------+------------------------------------------------+
-        | 0x1    | supports multipath as defined in this document |
-        +--------+------------------------------------------------+
-
-               Table 1: Available value for enable_multipath
-
-   If for any one of the endpoints, the parameter is absent or set to 0,
-   the endpoints MUST fallback to [QUIC-TRANSPORT] with single active
-   path and MUST NOT use any frame or mechanism defined in this
-   document.
-
-   If the parameter is set to 1, both endpoints MUST use non-zero
-   connection IDs.  If an enable_multipath parameter set to 1 is
-   received and the carrying packet does not contain a non-zero length
-   connection ID, the receiver MUST treat this as a connection error of
-   type TRANSPORT_PARAMETER_ERROR (specified in Section 20.1 of
-   [QUIC-TRANSPORT]) and close the connection.
-
-   If endpoint receives an unexpected value for the transport parameter
-   "enable_multipath", it MUST treat this as a connection error of type
+   When advertising the enable_multipath transport parameter, the
+   endpoint MUST use non-zero source and destination connection IDs.  If
+   an enable_multipath transport parameter is received and the carrying
+   packet does not contain a non-zero length connection ID, the receiver
+   MUST treat this as a connection error of type
    TRANSPORT_PARAMETER_ERROR (specified in Section 20.1 of
    [QUIC-TRANSPORT]) and close the connection.
 
@@ -307,7 +291,9 @@ Table of Contents
 
    The transport parameter "active_connection_id_limit" [QUIC-TRANSPORT]
    limits the number of usable Connection IDs, and also limits the
-   number of concurrent paths.
+   number of concurrent paths.  However, endpoints might prefer to
+   retain spare Connection IDs so that they can respond to unintentional
+   migration events (Section 9.5 of [QUIC-TRANSPORT]).
 
 4.  Path Setup and Removal
 
@@ -419,15 +405,15 @@ Table of Contents
    requests the peer to stop sending packets with the corresponding
    Destination Connection ID.
 
-   The sender and receiver of a PATH_ABANDON frame should not release
-   its resources immediately, but SHOULD wait for at least three times
-   the current Probe Timeout (PTO) interval as defined in Section 6.2.
-   of [QUIC-RECOVERY] after the last sent packet before sending the
-   RETIRE_CONNECTION_ID frame for the corresponding CID.  This is inline
-   with the requirement of Section 10.2 of [QUIC-TRANSPORT] to ensure
-   that paths close cleanly and that delayed or reordered packets are
-   properly discarded.  The effect of receiving a RETIRE_CONNECTION_ID
-   frame is specified in the next section.
+   When sending or receiving a PATH_ABANDON frame, endpoints SHOULD wait
+   for at least three times the current Probe Timeout (PTO) interval as
+   defined in Section 6.2 of [QUIC-RECOVERY] after the last packet was
+   sent on the path, before sending the RETIRE_CONNECTION_ID frame for
+   the corresponding Connection ID.  This is inline with the requirement
+   of Section 10.2 of [QUIC-TRANSPORT] to ensure that paths close
+   cleanly and that delayed or reordered packets are properly discarded.
+   The effect of receiving a RETIRE_CONNECTION_ID frame is specified in
+   the next section.
 
    Usually, it is expected that the PATH_ABANDON frame is used by the
    client to indicate to the server that path conditions have changed
@@ -443,10 +429,6 @@ Table of Contents
    PATH_ABANDON frames can be sent on any path, not only the path that
    is intended to be closed.  Thus, a path can be abandoned even if
    connectivity on that path is already broken.
-
-   Retransmittable frames, that have previously been sent on the
-   abandoned path and are considered lost, will be retransmitted on a
-   different path.
 
    If a PATH_ABANDON frame is received for the only active path of a
    QUIC connection, the receiving peer SHOULD send a CONNECTION_CLOSE
@@ -569,6 +551,8 @@ Table of Contents
     |   Closing  |                                  |
     +------------+                                  |
           |                                         |
+          | RETIRE_CONNECTION_ID sent && received   |
+          | or                                      |
           | Path's draining timeout                 |
           | (at least 3 PTO)                        |
           v                                         |
@@ -934,7 +918,7 @@ Table of Contents
    geostationary satellite path, with a latency of 300ms in both
    directions.  The acknowledgement delay will depend on the combination
    of paths used for the packet transmission and the ACK transmission,
-   as shown in Table 2.
+   as shown in Table 1.
 
             +======================+=============+===========+
             | ACK Path \ Data path | Terrestrial | Satellite |
@@ -944,7 +928,7 @@ Table of Contents
             | Satellite            | 350ms       | 600ms     |
             +----------------------+-------------+-----------+
 
-              Table 2: Example of ACK delays using multiple
+              Table 1: Example of ACK delays using multiple
                                   paths
 
    Using the default algorithm specified in [QUIC-RECOVERY] would result
@@ -1062,7 +1046,7 @@ Table of Contents
 
    If an endpoint receives a multipath-specific frame in a different
    packet type, it MUST close the connection with an error of type
-   MP_PROTOCOL_VIOLATION.
+   FRAME_ENCODING_ERROR.
 
    All multipath-specific frames relate to a Destination Connection ID
    sequence number.  If an endpoint receives a Destination Connection ID
@@ -1219,19 +1203,19 @@ Table of Contents
    draft defines provisional values for experiments, but we expect IANA
    to allocate short values if the draft is approved.
 
-   The following entry in Table 3 should be added to the "QUIC Transport
+   The following entry in Table 2 should be added to the "QUIC Transport
    Parameters" registry under the "QUIC Protocol" heading.
 
       +==========================+==================+===============+
       | Value                    | Parameter Name.  | Specification |
       +==========================+==================+===============+
       | TBD (current version     | enable_multipath | Section 3     |
-      | uses 0x0f739bbc1b666d04) |                  |               |
+      | uses 0x0f739bbc1b666d05) |                  |               |
       +--------------------------+------------------+---------------+
 
-           Table 3: Addition to QUIC Transport Parameters Entries
+           Table 2: Addition to QUIC Transport Parameters Entries
 
-   The following frame types defined in Table 4 should be added to the
+   The following frame types defined in Table 3 should be added to the
    "QUIC Frame Types" registry under the "QUIC Protocol" heading.
 
       +==============================+==============+===============+
@@ -1247,9 +1231,9 @@ Table of Contents
       | 0xbaba06)                    |              |               |
       +------------------------------+--------------+---------------+
 
-               Table 4: Addition to QUIC Frame Types Entries
+               Table 3: Addition to QUIC Frame Types Entries
 
-   The following transport error code defined in Table 5 should be added
+   The following transport error code defined in Table 4 should be added
    to the "QUIC Transport Error Codes" registry under the "QUIC
    Protocol" heading.
 
@@ -1261,7 +1245,7 @@ Table of Contents
    | use 0xba01)  |                       |violation  |               |
    +--------------+-----------------------+-----------+---------------+
 
-                  Table 5: Error Code for Multipath QUIC
+                  Table 4: Error Code for Multipath QUIC
 
 11.  Security Considerations
 
