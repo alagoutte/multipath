@@ -1537,10 +1537,12 @@ as specified in <span><a href="https://rfc-editor.org/rfc/rfc9000#section-9.3" c
         <h3 id="name-path-initiation">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-path-initiation" class="section-name selfRef">Path Initiation</a>
         </h3>
-<p id="section-4.1-1">Following <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>, each endpoint uses NEW_CONNECTION_ID frames
-to issue usable connections IDs to reach it. Before an endpoint adds
-a new path by initiating path validation, it MUST check whether at least
-one unused Connection ID is available for each side.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">Connection IDs cannot be reused, thus opening a new path requires the
+use of a new Connection ID (see <span><a href="https://rfc-editor.org/rfc/rfc9000#section-9.5" class="relref">Section 9.5</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>).
+Following <span>[<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>, each endpoint uses NEW_CONNECTION_ID frames
+to issue usable connections IDs to reach it. As such to open
+a new path by initiating path validation, both sides need at least
+one unused Connection ID (see <span><a href="https://rfc-editor.org/rfc/rfc9000#section-5.1.1" class="relref">Section 5.1.1</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>).<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2">If the transport parameter "active_connection_id_limit" is negotiated as N,
 the server provided N Connection IDs, and the client is already actively
 using N paths, the limit is reached. If the client wants to start
