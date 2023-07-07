@@ -5,7 +5,7 @@
 QUIC Working Group                                  刘彦梅 (Y. Liu), Ed.
 Internet-Draft                                            马云飞 (Y. Ma)
 Intended status: Standards Track                            Alibaba Inc.
-Expires: 6 January 2024                               Q. De Coninck, Ed.
+Expires: 8 January 2024                               Q. De Coninck, Ed.
                                                                UCLouvain
                                                           O. Bonaventure
                                                   UCLouvain and Tessares
@@ -13,7 +13,7 @@ Expires: 6 January 2024                               Q. De Coninck, Ed.
                                                     Private Octopus Inc.
                                                       M. Kuehlewind, Ed.
                                                                 Ericsson
-                                                             5 July 2023
+                                                             7 July 2023
 
 
                       Multipath Extension for QUIC
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 January 2024.
+   This Internet-Draft will expire on 8 January 2024.
 
 Copyright Notice
 
@@ -1091,7 +1091,8 @@ Table of Contents
    ACK_MP frame is formatted as shown in Figure 5.
 
      ACK_MP Frame {
-       Type (i) = TBD-00..TBD-01 (experiments use 0xbaba00..0xbaba01),
+       Type (i) = TBD-00..TBD-01
+            (experiments use  0x15228c00-0x15228c01),
        Destination Connection ID Sequence Number (i),
        Largest Acknowledged (i),
        ACK Delay (i),
@@ -1117,7 +1118,7 @@ Table of Contents
    PATH_ABANDON frames are formatted as shown in Figure 6.
 
      PATH_ABANDON Frame {
-       Type (i) = TBD-02 (experiments use 0xbaba05),
+       Type (i) = TBD-02 (experiments use 0x15228c05),
        Destination Connection ID Sequence Number (i),
        Error Code (i),
        Reason Phrase Length (i),
@@ -1158,7 +1159,7 @@ Table of Contents
    frames are formatted as shown in Figure 7.
 
      PATH_STATUS Frame {
-       Type (i) = TBD-03 (experiments use 0xbaba06),
+       Type (i) = TBD-03 (experiments use 0x15228c06),
        Destination Connection ID Sequence Number (i),
        Path Status sequence number (i),
        Path Status (i),
@@ -1213,9 +1214,9 @@ Table of Contents
    that can be used in a CONNECTION_CLOSE frame with a type of 0x1c.
    These errors apply to the entire connection.
 
-   MP_PROTOCOL_VIOLATION (experiments use 0xba01): An endpoint detected
-   an error with protocol compliance that was not covered by more
-   specific error codes.
+   MP_PROTOCOL_VIOLATION (experiments use 0x1001d76d3ded42f3): An
+   endpoint detected an error with protocol compliance that was not
+   covered by more specific error codes.
 
 10.  IANA Considerations
 
@@ -1243,13 +1244,13 @@ Table of Contents
       | Value                        | Frame Name   | Specification |
       +==============================+==============+===============+
       | TBD-00 - TBD-01 (experiments | ACK_MP       | Section 8.1   |
-      | use 0xbaba00-0xbaba01)       |              |               |
+      | use 0x15228c00-0x15228c01)   |              |               |
       +------------------------------+--------------+---------------+
       | TBD-02 (experiments use      | PATH_ABANDON | Section 8.2   |
-      | 0xbaba05)                    |              |               |
+      | 0x15228c05)                  |              |               |
       +------------------------------+--------------+---------------+
       | TBD-03 (experiments use      | PATH_STATUS  | Section 8.3   |
-      | 0xbaba06)                    |              |               |
+      | 0x15228c06)                  |              |               |
       +------------------------------+--------------+---------------+
 
                Table 3: Addition to QUIC Frame Types Entries
@@ -1258,15 +1259,15 @@ Table of Contents
    to the "QUIC Transport Error Codes" registry under the "QUIC
    Protocol" heading.
 
-   +==============+=======================+===========+===============+
-   | Value        | Code                  |Description| Specification |
-   +==============+=======================+===========+===============+
-   | TBD          | MP_PROTOCOL_VIOLATION |Multipath  | Section 9     |
-   | (experiments |                       |protocol   |               |
-   | use 0xba01)  |                       |violation  |               |
-   +--------------+-----------------------+-----------+---------------+
+   +===================+=====================+===========+=============+
+   |Value              |Code                 |Description|Specification|
+   +===================+=====================+===========+=============+
+   |TBD (experiments   |MP_PROTOCOL_VIOLATION|Multipath  |Section 9    |
+   |use                |                     |protocol   |             |
+   |0x1001d76d3ded42f3)|                     |violation  |             |
+   +-------------------+---------------------+-----------+-------------+
 
-                  Table 4: Error Code for Multipath QUIC
+                   Table 4: Error Code for Multipath QUIC
 
 11.  Security Considerations
 
