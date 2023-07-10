@@ -5,7 +5,7 @@
 QUIC Working Group                                  刘彦梅 (Y. Liu), Ed.
 Internet-Draft                                            马云飞 (Y. Ma)
 Intended status: Standards Track                            Alibaba Inc.
-Expires: 8 January 2024                               Q. De Coninck, Ed.
+Expires: 11 January 2024                              Q. De Coninck, Ed.
                                                                UCLouvain
                                                           O. Bonaventure
                                                   UCLouvain and Tessares
@@ -13,7 +13,7 @@ Expires: 8 January 2024                               Q. De Coninck, Ed.
                                                     Private Octopus Inc.
                                                       M. Kuehlewind, Ed.
                                                                 Ericsson
-                                                             7 July 2023
+                                                            10 July 2023
 
 
                       Multipath Extension for QUIC
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 January 2024.
+   This Internet-Draft will expire on 11 January 2024.
 
 Copyright Notice
 
@@ -287,11 +287,6 @@ Table of Contents
    This extension does not change the definition of any transport
    parameter defined in Section 18.2. of [QUIC-TRANSPORT].
 
-   Inline with the definition in [QUIC-TRANSPORT]
-   disable_active_migration also disables multipath support, except
-   "after a client has acted on a preferred_address transport parameter"
-   (Section 18.2. of [QUIC-TRANSPORT]).
-
    The transport parameter "active_connection_id_limit" [QUIC-TRANSPORT]
    limits the number of usable Connection IDs, and also limits the
    number of concurrent paths.  However, endpoints might prefer to
@@ -306,15 +301,21 @@ Table of Contents
 4.  Path Setup and Removal
 
    After completing the handshake, endpoints have agreed to enable
-   multipath feature and can start using multiple paths.  This document
-   does not specify how an endpoint that is reachable via several
-   addresses announces these addresses to the other endpoint.  In
-   particular, if the server uses the preferred_address transport
-   parameter, clients SHOULD NOT assume that the initial server address
-   and the addresses contained in this parameter can be simultaneously
-   used for multipath.  Furthermore, this document does not discuss when
-   a client decides to initiate a new path.  We delegate such discussion
-   in separate documents.
+   multipath feature.  They can also start using multiple paths, unless
+   both server preferred addresses and a disable_active_migration
+   transport parameter were provided by the server, in which case a
+   client is forbidden to establish new paths until "after a client has
+   acted on a preferred_address transport parameter" (Section 18.2. of
+   [QUIC-TRANSPORT]).
+
+   This document does not specify how an endpoint that is reachable via
+   several addresses announces these addresses to the other endpoint.
+   In particular, if the server uses the preferred_address transport
+   parameter, clients cannot assume that the initial server address and
+   the addresses contained in this parameter can be simultaneously used
+   for multipath (Section 9.6.2 of [QUIC-TRANSPORT]).  Furthermore, this
+   document does not discuss when a client decides to initiate a new
+   path.  We delegate such discussion in separate documents.
 
    To open a new path, an endpoint SHALL use different Connection IDs on
    different paths.  Still, the receiver may observe the same Connection
